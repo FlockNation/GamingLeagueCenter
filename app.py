@@ -1,14 +1,18 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 import csv
 import random
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static')
+
+@app.route('/')
+def index():
+    return send_from_directory('static', 'index.html')
 
 @app.route('/simulate', methods=['POST'])
 def simulate_route():
     data = request.json
     league = data.get('league', 'IGL')
-    result = run_simulation(league)
+    result = run_simulation()
     return jsonify(result)
 
 @app.route('/calculate_overall', methods=['POST'])
@@ -40,26 +44,36 @@ def get_overall_from_csv(score_impact, risk_factor, activity, filename='gaming_l
         pass
     return None
 
-def run_simulation(league):
-    teams = ['Team A', 'Team B', 'Team C', 'Team D']
-    results = {team: 0 for team in teams}
+def run_simulation():
+    teams = ['Colorado', 'Philadelphia', 'Alaska', 'Georgia', 'Miami']
+    records = {team: {'W': 0, 'L': 0} for team in teams}
 
     for i in range(len(teams)):
         for j in range(i + 1, len(teams)):
             winner = random.choice([teams[i], teams[j]])
-            results[winner] += 1
+            loser = teams[j] if winner == teams[i] else teams[i]
+            records[winner]['W'] += 1
+            records[loser]['L'] += 1
 
-    sorted_results = sorted(results.items(), key=lambda x: -x[1])
-    standings = [team for team, _ in sorted_results]
+    sorted_records = sorted(records.items(), key=lambda x: (-x[1]['W'], x[1]['L']))
+    standings = [(team, rec['W'], rec['L']) for team, rec in sorted_records]
+
+    top4 = [team for team, _, _ in standings[:4]]
+    semis = [[top4[0], top4[3]], [top4[1], top4[2]]]
+    final = [random.choice(semis[0]), random.choice(semis[1])]
+    champion = random.choice(final)
+
+    bottom1 = standings[-1][0]
+    lottery_order = [bottom1] + [team for team, _, _ in standings if team != bottom1]
 
     return {
         'standings': standings,
         'playoffs': {
-            'semis': [['Team A', 'Team D'], ['Team B', 'Team C']],
-            'final': ['Team A', 'Team B'],
-            'champion': 'Team A'
+            'semis': semis,
+            'final': final,
+            'champion': champion
         },
-        'lottery': ['Team D', 'Team C', 'Team B', 'Team A']
+        'lottery': lottery_order
     }
 
 if __name__ == '__main__':
