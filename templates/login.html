@@ -3,17 +3,30 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Login - Gaming League Center</title>
+  <title>Login / Register - Gaming League Center</title>
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
   <div class="container">
-    <h1>Login</h1>
-    <form id="login-form">
-      <input type="text" id="username" placeholder="Enter username" required />
-      <button type="submit">Login</button>
-    </form>
-    <p id="message"></p>
+    <h1>Login or Register</h1>
+
+    <div>
+      <h2>Login</h2>
+      <form id="login-form">
+        <input type="text" id="login-username" placeholder="Enter username" required />
+        <button type="submit">Login</button>
+      </form>
+      <p id="login-message"></p>
+    </div>
+
+    <div>
+      <h2>Register</h2>
+      <form id="register-form">
+        <input type="text" id="register-username" placeholder="Choose a username" required />
+        <button type="submit">Register</button>
+      </form>
+      <p id="register-message"></p>
+    </div>
 
     <div style="margin-top: 20px;">
       <a href="/">← Back to Main Page</a>
@@ -21,34 +34,57 @@
   </div>
 
   <script>
-    const form = document.getElementById('login-form');
-    const messageP = document.getElementById('message');
+    const loginForm = document.getElementById('login-form');
+    const loginMessage = document.getElementById('login-message');
+    const registerForm = document.getElementById('register-form');
+    const registerMessage = document.getElementById('register-message');
 
-    form.addEventListener('submit', async (e) => {
+    loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const username = document.getElementById('username').value.trim();
-
+      const username = document.getElementById('login-username').value.trim();
       if (!username) {
-        messageP.textContent = 'Please enter a username.';
+        loginMessage.textContent = 'Please enter a username.';
         return;
       }
-
       try {
         const res = await fetch('/login', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ username })
         });
-
         const data = await res.json();
-
         if (res.ok) {
           window.location.href = '/place_bets';
         } else {
-          messageP.textContent = data.error || 'Login failed';
+          loginMessage.textContent = data.error || 'Login failed';
         }
       } catch {
-        messageP.textContent = 'Error connecting to server.';
+        loginMessage.textContent = 'Error connecting to server.';
+      }
+    });
+
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('register-username').value.trim();
+      if (!username) {
+        registerMessage.textContent = 'Please enter a username.';
+        return;
+      }
+      try {
+        const res = await fetch('/register', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ username })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          registerMessage.textContent = 'Registered successfully! You can now login.';
+          registerForm.reset();
+        } else {
+          registerMessage.textContent = data.error || 'Registration failed';
+        }
+      } catch {
+        registerMessage.textContent = 'Error connecting to server.';
       }
     });
   </script>
