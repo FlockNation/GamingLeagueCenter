@@ -1,11 +1,74 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, redirect, url_for, session
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import csv
+import random
+from collections import defaultdict
 
 app = Flask(__name__)
+app.secret_key = 'your-secret-key'
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+users = {}
+
+class User(UserMixin):
+    def __init__(self, username):
+        self.id = username
+        self.balance = users[username]['balance']
+
+@login_manager.user_loader
+def load_user(user_id):
+    if user_id in users:
+        return User(user_id)
+    return None
 
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/register', methods=['POST'])
+def register():
+    username = request.json.get('username')
+    if username in users:
+        return jsonify({'error': 'Username already exists'}), 400
+    users[username] = {'balance': 1000}
+    return jsonify({'message': 'User registered successfully'})
+
+@app.route('/login', methods=['POST'])
+def login():
+    username = request.json.get('username')
+    if username not in users:
+        return jsonify({'error': 'User not found'}), 404
+    user = User(username)
+    login_user(user)
+    return jsonify({'message': 'Logged in', 'balance': users[username]['balance']})
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return jsonify({'message': 'Logged out'})
+
+@app.route('/place_bet', methods=['POST'])
+@login_required
+def place_bet():
+    data = request.json
+    game = data.get('game')
+    team = data.get('team')
+    amount = int(data.get('amount'))
+
+    username = current_user.id
+    if users[username]['balance'] < amount:
+        return jsonify({'error': 'Not enough coins'}), 400
+
+    users[username]['balance'] -= amount
+
+    if 'bets' not in users[username]:
+        users[username]['bets'] = []
+    users[username]['bets'].append({'game': game, 'team': team, 'amount': amount})
+
+    return jsonify({'message': f'Bet placed on {team} for {amount} coins.', 'balance': users[username]['balance']})
 
 @app.route('/simulate', methods=['POST'])
 def simulate_route():
@@ -91,9 +154,6 @@ def get_player_overall(player_name):
         pass
     return None
 
-import random
-from collections import defaultdict
-
 def run_simulation(league):
     teams = ['Colorado', 'Philadelphia', 'Alaska', 'Georgia', 'Miami']
     matchups = [(teams[i], teams[j]) for i in range(len(teams)) for j in range(i + 1, len(teams))]
@@ -120,6 +180,6 @@ def run_simulation(league):
         'playoffs': playoffs,
         'lottery': lottery
     }
-    
+
 if __name__ == '__main__':
     app.run(debug=True)
