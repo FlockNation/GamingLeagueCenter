@@ -4,18 +4,33 @@ body {
   color: white;
   text-align: center;
   padding: 2rem;
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .container {
   background-color: rgba(0,0,0,0.5);
   border-radius: 16px;
-  padding: 2rem;
+  padding: 2rem 3rem;
   display: inline-block;
   box-shadow: 0 0 15px #000;
+  max-width: 400px;
+  width: 100%;
+}
+
+h1, h2 {
+  margin-bottom: 1rem;
+}
+
+.buttons {
+  margin-bottom: 20px;
 }
 
 button {
-  margin: 10px;
+  margin: 10px 8px;
   padding: 10px 20px;
   font-size: 16px;
   border: none;
@@ -23,8 +38,43 @@ button {
   color: white;
   border-radius: 10px;
   cursor: pointer;
+  transition: background 0.3s ease;
+  min-width: 140px;
 }
 
-button:hover {
+button:hover:not(:disabled) {
   background: #0077b6;
+}
+
+button:disabled {
+  background: #555;
+  cursor: not-allowed;
+}
+
+input[type="number"] {
+  width: 60px;
+  padding: 6px;
+  margin-left: 8px;
+  border-radius: 6px;
+  border: none;
+  font-size: 16px;
+  text-align: center;
+}
+
+label {
+  display: block;
+  margin: 8px 0;
+  font-weight: normal;
+}
+
+#overallResult, #results {
+  margin-top: 1rem;
+  color: #00ffea;
+  font-weight: bold;
+  text-align: left;
+}
+
+ul, ol {
+  text-align: left;
+  padding-left: 20px;
 }
