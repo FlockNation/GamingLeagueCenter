@@ -36,10 +36,10 @@ def get_overall_from_csv(score_impact, risk_factor, activity, filename='gaming_l
         with open(filename, mode='r') as file:
             reader = csv.DictReader(file)
             for row in reader:
-                if (int(row['score_impact']) == score_impact and
-                    int(row['risk_factor']) == risk_factor and
-                    int(row['activity']) == activity):
-                    return int(row['overall'])
+                if (int(row['ScoreImpact']) == score_impact and
+                    int(row['RiskFactor']) == risk_factor and
+                    int(row['Activity']) == activity):
+                    return int(row['Overall'])
     except:
         pass
     return None
