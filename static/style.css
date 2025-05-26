@@ -51,23 +51,27 @@ button:disabled {
   cursor: not-allowed;
 }
 
-input[type="number"] {
-  width: 60px;
-  padding: 6px;
-  margin-left: 8px;
+input[type="number"],
+input[type="text"],
+input[type="password"] {
+  width: calc(100% - 16px);
+  padding: 8px;
+  margin: 8px 0;
   border-radius: 6px;
   border: none;
   font-size: 16px;
   text-align: center;
+  box-sizing: border-box;
 }
 
 label {
   display: block;
-  margin: 8px 0;
+  margin: 8px 0 4px 0;
   font-weight: normal;
+  text-align: left;
 }
 
-#overallResult, #results {
+#overall-result, #results, #player-overall-result {
   margin-top: 1rem;
   color: #00ffea;
   font-weight: bold;
@@ -77,4 +81,60 @@ label {
 ul, ol {
   text-align: left;
   padding-left: 20px;
+}
+
+form {
+  margin-top: 1rem;
+  text-align: left;
+}
+
+.error-message {
+  color: #ff4c4c;
+  margin-top: 0.5rem;
+  font-weight: bold;
+}
+
+.success-message {
+  color: #00ff99;
+  margin-top: 0.5rem;
+  font-weight: bold;
+}
+
+.auth-container {
+  background-color: rgba(0,0,0,0.6);
+  padding: 2rem;
+  border-radius: 16px;
+  max-width: 400px;
+  margin: auto;
+}
+
+.bet-item {
+  margin: 1rem 0;
+  padding: 1rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  text-align: left;
+}
+
+.bet-item button {
+  min-width: 100px;
+  margin-left: 10px;
+}
+
+@media (max-width: 480px) {
+  .container, .auth-container {
+    padding: 1rem 1.5rem;
+    width: 90%;
+  }
+
+  button {
+    min-width: 100%;
+    margin: 8px 0;
+  }
+
+  input[type="number"],
+  input[type="text"],
+  input[type="password"] {
+    width: 100%;
+  }
 }
