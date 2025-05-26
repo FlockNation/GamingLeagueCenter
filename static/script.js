@@ -2,6 +2,7 @@ function hideAllSections() {
   document.getElementById('calculate-overall-section').style.display = 'none';
   document.getElementById('simulate-leagues-section').style.display = 'none';
   document.getElementById('lookup-player-section').style.display = 'none';
+  document.getElementById('place-bets-section').style.display = 'none';
   clearResults();
 }
 
@@ -9,6 +10,7 @@ function clearResults() {
   document.getElementById('overall-result').textContent = '';
   document.getElementById('results').innerHTML = '';
   document.getElementById('player-overall-result').textContent = '';
+  document.getElementById('bet-result').textContent = '';
 }
 
 function showCalculateOverall() {
@@ -25,6 +27,11 @@ function showLookupPlayer() {
   hideAllSections();
   document.getElementById('lookup-player-section').style.display = 'block';
   loadPlayers();
+}
+
+function showPlaceBets() {
+  hideAllSections();
+  document.getElementById('place-bets-section').style.display = 'block';
 }
 
 async function calculateOverall() {
@@ -57,7 +64,6 @@ async function simulate() {
   });
 
   const data = await response.json();
-
   const totalGamesPerTeam = data.standings.length - 1;
 
   const results = document.getElementById('results');
@@ -127,3 +133,67 @@ async function lookupPlayerOverall() {
     resultP.textContent = 'Error fetching player overall rating.';
   }
 }
+
+async function register() {
+  const username = document.getElementById('username').value;
+  const res = await fetch('/register', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ username })
+  });
+  const data = await res.json();
+  alert(data.message);
+  updateBalance();
+}
+
+async function login() {
+  const username = document.getElementById('username').value;
+  const res = await fetch('/login', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ username })
+  });
+  const data = await res.json();
+  alert(data.message);
+  updateBalance();
+}
+
+async function logout() {
+  const res = await fetch('/logout', { method: 'POST' });
+  const data = await res.json();
+  alert(data.message);
+  document.getElementById('balance').textContent = 'Not logged in';
+}
+
+async function updateBalance() {
+  const res = await fetch('/get_balance');
+  const data = await res.json();
+  if (res.ok) {
+    document.getElementById('balance').textContent = `Balance: ${data.balance} Coins`;
+  } else {
+    document.getElementById('balance').textContent = 'Not logged in';
+  }
+}
+
+async function placeBet() {
+  const game = document.getElementById('game').value;
+  const team = document.getElementById('team').value;
+  const amount = parseInt(document.getElementById('bet-amount').value);
+  const resultP = document.getElementById('bet-result');
+
+  const res = await fetch('/place_bet', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ game, team, amount })
+  });
+
+  const data = await res.json();
+  if (res.ok) {
+    resultP.textContent = data.message;
+    updateBalance();
+  } else {
+    resultP.textContent = data.error || 'Bet failed';
+  }
+}
+
+updateBalance();
