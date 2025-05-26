@@ -73,14 +73,20 @@ def get_overall_from_csv(score_impact, risk_factor, activity, filename='gaming_l
         pass
     return None
 
-def get_player_overall(player_name, filename='tableConvert.com_03cn1x.csv'):
+def get_player_overall(player_name):
     try:
-        with open(filename, newline='', encoding='utf-8') as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                # Adjust column name if needed:
-                if row.get('player') == player_name or row.get('Player') == player_name:
-                    return int(row.get('overall') or row.get('Overall') or 0)
+        with open('tableConvert.com_grbjkn.csv', newline='', encoding='utf-8') as player_file, \
+             open('tableConvert.com_03cn1x.csv', newline='', encoding='utf-8') as overall_file:
+
+            player_reader = csv.DictReader(player_file)
+            overall_reader = csv.DictReader(overall_file)
+
+            players = [row['player'] for row in player_reader]
+            overalls = [int(row['player_overall']) for row in overall_reader]
+
+            if player_name in players:
+                index = players.index(player_name)
+                return overalls[index]
     except:
         pass
     return None
