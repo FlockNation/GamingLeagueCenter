@@ -65,10 +65,10 @@ def get_overall_from_csv(score_impact, risk_factor, activity, filename='gaming_l
         with open(filename, mode='r') as file:
             reader = csv.DictReader(file)
             for row in reader:
-                if (int(row['score_impact']) == score_impact and
-                    int(row['risk_factor']) == risk_factor and
-                    int(row['activity']) == activity):
-                    return int(row['overall'])
+                if (int(row['ScoreImpact']) == score_impact and
+                    int(row['RiskFactor']) == risk_factor and
+                    int(row['Activity']) == activity):
+                    return int(row['Overall'])
     except:
         pass
     return None
@@ -91,26 +91,29 @@ from collections import defaultdict
 def run_simulation(league):
     teams = ['Colorado', 'Philadelphia', 'Alaska', 'Georgia', 'Miami']
     games_per_team = 4
-    total_games = (len(teams) * games_per_team) // 2
+    team_games = defaultdict(int)
+    matchups = []
 
-    matchups = set()
-    while len(matchups) < total_games:
+    while any(team_games[t] < games_per_team for t in teams):
         t1, t2 = random.sample(teams, 2)
-        if (t1, t2) not in matchups and (t2, t1) not in matchups:
-            matchups.add((t1, t2))
+        if t1 == t2:
+            continue
+        if team_games[t1] >= games_per_team or team_games[t2] >= games_per_team:
+            continue
+        if (t1, t2) in matchups or (t2, t1) in matchups:
+            continue
+
+        matchups.append((t1, t2))
+        team_games[t1] += 1
+        team_games[t2] += 1
 
     wins = defaultdict(int)
     for t1, t2 in matchups:
         winner = random.choice([t1, t2])
         wins[winner] += 1
 
-    standings = sorted(wins.items(), key=lambda x: x[1], reverse=True)
-
-    for team in teams:
-        if team not in wins:
-            standings.append((team, 0))
-
-    standings = sorted(standings, key=lambda x: x[1], reverse=True)
+    standings = [(team, wins.get(team, 0)) for team in teams]
+    standings.sort(key=lambda x: x[1], reverse=True)
 
     playoffs = {
         'semis': [(standings[0][0], standings[3][0]), (standings[1][0], standings[2][0])],
@@ -121,11 +124,11 @@ def run_simulation(league):
     lottery = [team for team, _ in reversed(standings)]
 
     return {
-        'matchups': list(matchups),
+        'matchups': matchups,
         'standings': standings,
         'playoffs': playoffs,
         'lottery': lottery
     }
-
+    
 if __name__ == '__main__':
     app.run(debug=True)
