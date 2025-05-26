@@ -20,7 +20,7 @@
 
     <button onclick="showCalculateOverall()">Calculate Overall</button>
     <button onclick="showSimulateLeagues()">Simulate Leagues</button>
-    <button onclick="showPlaceBets()">Place Bets</button>
+    <a href="place_bets.html"><button>Place Bets</button></a>
     <button onclick="showLookupPlayer()">Lookup Player Overall</button>
 
     <div id="calculate-overall-section" style="display:none; margin-top:20px;">
@@ -49,15 +49,6 @@
       </select>
       <button onclick="lookupPlayerOverall()">Lookup Overall</button>
       <p id="player-overall-result"></p>
-    </div>
-
-    <div id="place-bets-section" style="display:none; margin-top:20px;">
-      <h2>Place Bets</h2>
-      <input type="text" id="game" placeholder="Game (e.g. Miami vs Georgia)" />
-      <input type="text" id="team" placeholder="Team to win (e.g. Georgia)" />
-      <input type="number" id="bet-amount" placeholder="Amount (Coins)" />
-      <button onclick="placeBet()">Place Bet</button>
-      <p id="bet-result"></p>
     </div>
   </div>
 
