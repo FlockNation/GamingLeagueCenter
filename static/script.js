@@ -58,10 +58,11 @@ async function simulate() {
 
   const data = await response.json();
 
+  const totalGamesPerTeam = data.standings.length - 1;
+
   const results = document.getElementById('results');
   results.innerHTML = `
     <h2>Standings</h2>
-    const totalGamesPerTeam = data.standings.length - 1;
     <ul>${data.standings.map(t => `<li>${t[0]}: ${t[1]}W - ${totalGamesPerTeam - t[1]}L</li>`).join('')}</ul>
 
     <h2>Playoffs</h2>
