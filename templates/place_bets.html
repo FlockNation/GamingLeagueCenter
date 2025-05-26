@@ -10,20 +10,14 @@
   <div class="container">
     <h1>Place Your Bets</h1>
 
-    <div id="auth-section">
-      <input type="text" id="username" placeholder="Username" />
-      <button onclick="register()">Register</button>
-      <button onclick="login()">Login</button>
-      <button onclick="logout()">Logout</button>
-      <p id="balance">Not logged in</p>
-    </div>
+    <p id="balance">Checking balance...</p>
 
-    <div id="bet-section" style="margin-top: 20px;">
+    <div id="betting-section" style="margin-top: 20px;">
       <h2>Place a Bet</h2>
       <input type="text" id="game" placeholder="Game (e.g. Miami vs Georgia)" />
       <input type="text" id="team" placeholder="Team to win (e.g. Georgia)" />
       <input type="number" id="bet-amount" placeholder="Amount (Coins)" min="1" />
-      <button onclick="placeBet()">Place Bet</button>
+      <button id="place-bet-btn">Place Bet</button>
       <p id="bet-result"></p>
     </div>
 
