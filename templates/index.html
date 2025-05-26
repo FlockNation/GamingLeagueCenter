@@ -1,20 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>League Simulator</title>
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
   <div class="container">
-    <h1>Simulate a League</h1>
-    <select id="league">
-      <option value="IGL">IGL</option>
-      <option value="SLOG">SLOG</option>
-    </select>
-    <button onclick="simulate()">Simulate</button>
+    <h1>League Simulator</h1>
 
-    <div id="results"></div>
+    <div class="buttons">
+      <button onclick="showSection('calculate')">Calculate Overall</button>
+      <button onclick="showSection('simulate')">Simulate Leagues</button>
+      <button disabled>Place Bets (coming soon)</button>
+    </div>
+
+    <section id="calculate" style="display:none; margin-top: 20px;">
+      <h2>Calculate Overall</h2>
+      <label>Score Impact (1-10): <input id="scoreImpact" type="number" min="1" max="10" /></label><br />
+      <label>Risk Factor (1-10): <input id="riskFactor" type="number" min="1" max="10" /></label><br />
+      <label>Activity Level (1-10): <input id="activityLevel" type="number" min="1" max="10" /></label><br />
+      <button onclick="calculateOverall()">Calculate Overall</button>
+      <div id="overallResult" style="margin-top: 10px; font-weight: bold;"></div>
+    </section>
+
+    <section id="simulate" style="display:none; margin-top: 20px;">
+      <h2>Simulate a League</h2>
+      <select id="league">
+        <option value="IGL">IGL</option>
+        <option value="SLOG">SLOG</option>
+      </select>
+      <button onclick="simulate()">Simulate</button>
+      <div id="results" style="margin-top: 20px;"></div>
+    </section>
   </div>
 
   <script src="/static/script.js"></script>
