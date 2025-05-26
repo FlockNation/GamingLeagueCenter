@@ -1,50 +1,30 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Segoe UI', sans-serif;
-}
-
 body {
-  height: 100vh;
-  background: linear-gradient(135deg, #1f1c2c, #928dab);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
   color: white;
+  text-align: center;
+  padding: 2rem;
 }
 
 .container {
-  text-align: center;
+  background-color: rgba(0,0,0,0.5);
+  border-radius: 16px;
+  padding: 2rem;
+  display: inline-block;
+  box-shadow: 0 0 15px #000;
 }
 
-h1 {
-  margin-bottom: 40px;
-  font-size: 3rem;
-  text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
-}
-
-.button-group {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-}
-
-.button-group button {
-  width: 150px;
-  height: 150px;
-  font-size: 1rem;
-  font-weight: bold;
+button {
+  margin: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
   border: none;
-  border-radius: 20px;
-  background: #ff758c;
-  background: linear-gradient(145deg, #ff758c, #ff7eb3);
+  background: #00b4d8;
   color: white;
+  border-radius: 10px;
   cursor: pointer;
-  transition: transform 0.2s ease, background 0.3s ease;
 }
 
-.button-group button:hover {
-  transform: scale(1.05);
-  background: linear-gradient(145deg, #ff6a7c, #ff75aa);
+button:hover {
+  background: #0077b6;
 }
