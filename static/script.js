@@ -1,3 +1,43 @@
+function showSection(sectionId) {
+  document.getElementById('calculate').style.display = 'none';
+  document.getElementById('simulate').style.display = 'none';
+  document.getElementById(sectionId).style.display = 'block';
+}
+
+window.onload = () => {
+  showSection('simulate');
+}
+
+async function calculateOverall() {
+  const scoreImpact = parseInt(document.getElementById('scoreImpact').value);
+  const riskFactor = parseInt(document.getElementById('riskFactor').value);
+  const activityLevel = parseInt(document.getElementById('activityLevel').value);
+
+  if (
+    isNaN(scoreImpact) || scoreImpact < 1 || scoreImpact > 10 ||
+    isNaN(riskFactor) || riskFactor < 1 || riskFactor > 10 ||
+    isNaN(activityLevel) || activityLevel < 1 || activityLevel > 10
+  ) {
+    alert("Please enter valid numbers between 1 and 10 for all fields.");
+    return;
+  }
+
+  const response = await fetch('/calculate_overall', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ score_impact: scoreImpact, risk_factor: riskFactor, activity: activityLevel })
+  });
+
+  const data = await response.json();
+  const resultDiv = document.getElementById('overallResult');
+
+  if (response.ok) {
+    resultDiv.textContent = `Overall Rating: ${data.overall}`;
+  } else {
+    resultDiv.textContent = data.error || "Error calculating overall.";
+  }
+}
+
 async function simulate() {
   const league = document.getElementById("league").value;
 
