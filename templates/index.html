@@ -10,14 +10,6 @@
   <div class="container">
     <h1>Gaming League Center</h1>
     
-    <div id="auth-section">
-      <input type="text" id="username" placeholder="Username" />
-      <button onclick="register()">Register</button>
-      <button onclick="login()">Login</button>
-      <button onclick="logout()">Logout</button>
-      <p id="balance">Not logged in</p>
-    </div>
-
     <button onclick="showCalculateOverall()">Calculate Overall</button>
     <button onclick="showSimulateLeagues()">Simulate Leagues</button>
     <a href="place_bets.html"><button>Place Bets</button></a>
@@ -36,7 +28,7 @@
       <h2>Simulate Leagues</h2>
       <select id="league">
         <option value="IGL">IGL</option>
-        <option value="Other">Other</option>
+        <option value="SLOG">SLOG</option>
       </select>
       <button onclick="simulate()">Simulate</button>
       <div id="results"></div>
