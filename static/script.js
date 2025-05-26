@@ -166,11 +166,16 @@ async function logout() {
 }
 
 async function updateBalance() {
-  const res = await fetch('/get_balance');
-  const data = await res.json();
-  if (res.ok) {
-    document.getElementById('balance').textContent = `Balance: ${data.balance} Coins`;
-  } else {
+  try {
+    const res = await fetch('/get_balance');
+    const data = await res.json();
+    if (res.ok) {
+      document.getElementById('balance').textContent = `Balance: ${data.balance} Coins`;
+    } else {
+      document.getElementById('balance').textContent = 'Not logged in';
+    }
+  } catch (err) {
+    console.error('Error updating balance:', err);
     document.getElementById('balance').textContent = 'Not logged in';
   }
 }
@@ -196,4 +201,6 @@ async function placeBet() {
   }
 }
 
-updateBalance();
+document.addEventListener('DOMContentLoaded', () => {
+  updateBalance();
+});
