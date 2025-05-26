@@ -1,20 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gaming League Center</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <title>League Simulator</title>
+  <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
   <div class="container">
-    <h1>Gaming League Center</h1>
-    <div class="button-group">
-      <button onclick="calculateOverall()">Calculate Your Overall</button>
-      <button onclick="simulateSeason()">Simulate Season</button>
-      <button onclick="placeBets()">Place Bets</button>
-    </div>
+    <h1>Simulate a League</h1>
+    <select id="league">
+      <option value="IGL">IGL</option>
+      <option value="SLOG">SLOG</option>
+    </select>
+    <button onclick="simulate()">Simulate</button>
+
+    <div id="results"></div>
   </div>
-  <script src="script.js"></script>
+
+  <script src="/static/script.js"></script>
 </body>
 </html>
