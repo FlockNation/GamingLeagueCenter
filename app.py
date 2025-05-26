@@ -1,8 +1,7 @@
-from flask import Flask, request, jsonify, send_from_directory, render_template
+from flask import Flask, request, jsonify, render_template
 import csv
-import random
 
-app = Flask(__name__, static_folder='static')
+app = Flask(__name__)
 
 @app.route('/')
 def index():
@@ -12,7 +11,7 @@ def index():
 def simulate_route():
     data = request.json
     league = data.get('league', 'IGL')
-    result = run_simulation()
+    result = run_simulation(league)
     return jsonify(result)
 
 @app.route('/calculate_overall', methods=['POST'])
@@ -31,49 +30,79 @@ def calculate_overall_route():
 
     return jsonify({'overall': overall})
 
+@app.route('/players', methods=['GET'])
+def players_route():
+    players = []
+    try:
+        with open('tableConvert.com_grbjkn.csv', newline='', encoding='utf-8') as csvfile:
+            reader = csv.DictReader(csvfile)
+            seen = set()
+            for row in reader:
+                player = row.get('player') or row.get('Player') or next(iter(row.values())).strip()
+                if player and player not in seen:
+                    seen.add(player)
+                    players.append(player)
+    except Exception:
+        pass
+    return jsonify({'players': players})
+
+@app.route('/player_overall', methods=['POST'])
+def player_overall_route():
+    data = request.json
+    player_name = data.get('player')
+
+    if not player_name:
+        return jsonify({'error': 'No player specified'}), 400
+
+    overall = get_player_overall(player_name)
+    if overall is None:
+        return jsonify({'error': 'Player not found'}), 404
+
+    return jsonify({'overall': overall})
+
 def get_overall_from_csv(score_impact, risk_factor, activity, filename='gaming_league_overall.csv'):
     try:
         with open(filename, mode='r') as file:
             reader = csv.DictReader(file)
             for row in reader:
-                if (int(row['ScoreImpact']) == score_impact and
-                    int(row['RiskFactor']) == risk_factor and
-                    int(row['Activity']) == activity):
-                    return int(row['Overall'])
+                if (int(row['score_impact']) == score_impact and
+                    int(row['risk_factor']) == risk_factor and
+                    int(row['activity']) == activity):
+                    return int(row['overall'])
     except:
         pass
     return None
 
-def run_simulation():
+def get_player_overall(player_name, filename='tableConvert.com_03cn1x.csv'):
+    try:
+        with open(filename, newline='', encoding='utf-8') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                # Adjust column name if needed:
+                if row.get('player') == player_name or row.get('Player') == player_name:
+                    return int(row.get('overall') or row.get('Overall') or 0)
+    except:
+        pass
+    return None
+
+def run_simulation(league):
     teams = ['Colorado', 'Philadelphia', 'Alaska', 'Georgia', 'Miami']
-    records = {team: {'W': 0, 'L': 0} for team in teams}
+    import random
+    standings = [(team, random.randint(0, 20)) for team in teams]
+    standings.sort(key=lambda x: x[1], reverse=True)
 
-    for i in range(len(teams)):
-        for j in range(i + 1, len(teams)):
-            winner = random.choice([teams[i], teams[j]])
-            loser = teams[j] if winner == teams[i] else teams[i]
-            records[winner]['W'] += 1
-            records[loser]['L'] += 1
+    playoffs = {
+        'semis': [(standings[0][0], standings[3][0]), (standings[1][0], standings[2][0])],
+        'final': (standings[0][0], standings[1][0]),
+        'champion': standings[0][0]
+    }
 
-    sorted_records = sorted(records.items(), key=lambda x: (-x[1]['W'], x[1]['L']))
-    standings = [(team, rec['W'], rec['L']) for team, rec in sorted_records]
-
-    top4 = [team for team, _, _ in standings[:4]]
-    semis = [[top4[0], top4[3]], [top4[1], top4[2]]]
-    final = [random.choice(semis[0]), random.choice(semis[1])]
-    champion = random.choice(final)
-
-    bottom1 = standings[-1][0]
-    lottery_order = [bottom1] + [team for team, _, _ in standings if team != bottom1]
+    lottery = [team for team, wins in reversed(standings)]
 
     return {
         'standings': standings,
-        'playoffs': {
-            'semis': semis,
-            'final': final,
-            'champion': champion
-        },
-        'lottery': lottery_order
+        'playoffs': playoffs,
+        'lottery': lottery
     }
 
 if __name__ == '__main__':
