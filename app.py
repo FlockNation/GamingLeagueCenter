@@ -88,7 +88,7 @@ def get_player_overall(player_name, filename='tableConvert.com_03cn1x.csv'):
 def run_simulation(league):
     teams = ['Colorado', 'Philadelphia', 'Alaska', 'Georgia', 'Miami']
     import random
-    standings = [(team, random.randint(0, 20)) for team in teams]
+    standings = [(team, random.randint(0, 4)) for team in teams]
     standings.sort(key=lambda x: x[1], reverse=True)
 
     playoffs = {
