@@ -2,37 +2,45 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Gaming League Center</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gaming League</title>
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
   <div class="container">
-    <h1>Gaming League Center</h1>
+    <h1>Gaming League Portal</h1>
+    <button onclick="showCalculateOverall()">Calculate Overall</button>
+    <button onclick="showSimulateLeagues()">Simulate Leagues</button>
+    <button disabled>Place Bets (coming soon)</button>
+    <button onclick="showLookupPlayer()">Lookup Player Overall</button>
 
-    <div class="buttons">
-      <button onclick="showSection('calculate')">Calculate Overall</button>
-      <button onclick="showSection('simulate')">Simulate Leagues</button>
-      <button disabled>Place Bets (coming soon)</button>
+    <div id="calculate-overall-section" style="display:none; margin-top:20px;">
+      <h2>Calculate Overall</h2>
+      <input type="number" id="score_impact" placeholder="Score Impact (1-10)" min="1" max="10" />
+      <input type="number" id="risk_factor" placeholder="Risk Factor (1-10)" min="1" max="10" />
+      <input type="number" id="activity" placeholder="Activity Level (1-10)" min="1" max="10" />
+      <button onclick="calculateOverall()">Calculate</button>
+      <p id="overall-result"></p>
     </div>
 
-    <section id="calculate" style="display:none; margin-top: 20px;">
-      <h2>Calculate Overall</h2>
-      <label>Score Impact (1-10): <input id="scoreImpact" type="number" min="1" max="10" /></label><br />
-      <label>Risk Factor (1-10): <input id="riskFactor" type="number" min="1" max="10" /></label><br />
-      <label>Activity Level (1-10): <input id="activityLevel" type="number" min="1" max="10" /></label><br />
-      <button onclick="calculateOverall()">Calculate Overall</button>
-      <div id="overallResult" style="margin-top: 10px; font-weight: bold;"></div>
-    </section>
-
-    <section id="simulate" style="display:none; margin-top: 20px;">
-      <h2>Simulate a League</h2>
+    <div id="simulate-leagues-section" style="display:none; margin-top:20px;">
+      <h2>Simulate Leagues</h2>
       <select id="league">
         <option value="IGL">IGL</option>
-        <option value="SLOG">SLOG</option>
+        <option value="Other">Other</option>
       </select>
       <button onclick="simulate()">Simulate</button>
-      <div id="results" style="margin-top: 20px;"></div>
-    </section>
+      <div id="results"></div>
+    </div>
+
+    <div id="lookup-player-section" style="display:none; margin-top:20px;">
+      <h2>Lookup Player Overall</h2>
+      <select id="player-select">
+        <option value="">Loading players...</option>
+      </select>
+      <button onclick="lookupPlayerOverall()">Lookup Overall</button>
+      <p id="player-overall-result"></p>
+    </div>
   </div>
 
   <script src="/static/script.js"></script>
