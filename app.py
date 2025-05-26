@@ -96,22 +96,7 @@ from collections import defaultdict
 
 def run_simulation(league):
     teams = ['Colorado', 'Philadelphia', 'Alaska', 'Georgia', 'Miami']
-    games_per_team = 4
-    team_games = defaultdict(int)
-    matchups = []
-
-    while any(team_games[t] < games_per_team for t in teams):
-        t1, t2 = random.sample(teams, 2)
-        if t1 == t2:
-            continue
-        if team_games[t1] >= games_per_team or team_games[t2] >= games_per_team:
-            continue
-        if (t1, t2) in matchups or (t2, t1) in matchups:
-            continue
-
-        matchups.append((t1, t2))
-        team_games[t1] += 1
-        team_games[t2] += 1
+    matchups = [(teams[i], teams[j]) for i in range(len(teams)) for j in range(i + 1, len(teams))]
 
     wins = defaultdict(int)
     for t1, t2 in matchups:
