@@ -26,7 +26,7 @@ def calculate_overall_route():
 
     return jsonify({'overall': overall})
 
-def get_overall_from_csv(score_impact, risk_factor, activity, filename='gaming_league_overall (2).csv'):
+def get_overall_from_csv(score_impact, risk_factor, activity, filename='gaming_league_overall.csv'):
     try:
         with open(filename, mode='r') as file:
             reader = csv.DictReader(file)
