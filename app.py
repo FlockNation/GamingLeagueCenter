@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, redirect, url_for, session
+from flask import Flask, request, jsonify, render_template
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import csv
 import random
@@ -15,7 +15,10 @@ users = {}
 class User(UserMixin):
     def __init__(self, username):
         self.id = username
-        self.balance = users[username]['balance']
+
+    @property
+    def balance(self):
+        return users.get(self.id, {}).get('balance', 0)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -23,33 +26,37 @@ def load_user(user_id):
         return User(user_id)
     return None
 
+@app.route('/')
+def index():
+    return render_template('index.html')
+
 @app.route('/place_bets')
 @login_required
 def place_bets_page():
     return render_template('place_bets.html')
 
-@app.route('/')
-def index():
-    return render_template('index.html')
-
 @app.route('/register', methods=['POST'])
 def register():
     username = request.json.get('username')
+    if not username:
+        return jsonify({'error': 'Username required'}), 400
     if username in users:
         return jsonify({'error': 'Username already exists'}), 400
     users[username] = {'balance': 1000}
-    return jsonify({'message': 'User registered successfully'})
+    return jsonify({'message': 'User registered successfully', 'balance': users[username]['balance']})
 
 @app.route('/login', methods=['POST'])
 def login():
     username = request.json.get('username')
+    if not username:
+        return jsonify({'error': 'Username required'}), 400
     if username not in users:
         return jsonify({'error': 'User not found'}), 404
     user = User(username)
     login_user(user)
     return jsonify({'message': 'Logged in', 'balance': users[username]['balance']})
 
-@app.route('/logout')
+@app.route('/logout', methods=['POST'])
 @login_required
 def logout():
     logout_user()
@@ -61,7 +68,16 @@ def place_bet():
     data = request.json
     game = data.get('game')
     team = data.get('team')
-    amount = int(data.get('amount'))
+    amount = data.get('amount')
+
+    if not game or not team or amount is None:
+        return jsonify({'error': 'Missing bet details'}), 400
+    try:
+        amount = int(amount)
+        if amount <= 0:
+            return jsonify({'error': 'Bet amount must be positive'}), 400
+    except ValueError:
+        return jsonify({'error': 'Invalid bet amount'}), 400
 
     username = current_user.id
     if users[username]['balance'] < amount:
@@ -74,6 +90,13 @@ def place_bet():
     users[username]['bets'].append({'game': game, 'team': team, 'amount': amount})
 
     return jsonify({'message': f'Bet placed on {team} for {amount} coins.', 'balance': users[username]['balance']})
+
+@app.route('/get_balance')
+@login_required
+def get_balance():
+    username = current_user.id
+    balance = users.get(username, {}).get('balance', 0)
+    return jsonify({'balance': balance})
 
 @app.route('/simulate', methods=['POST'])
 def simulate_route():
