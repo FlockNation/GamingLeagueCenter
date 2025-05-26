@@ -2,15 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login - Gaming League Center</title>
+  <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
-  <h1>Login</h1>
-  <form id="login-form">
-    <input type="text" id="username" placeholder="Enter username" required />
-    <button type="submit">Login</button>
-  </form>
-  <p id="message"></p>
+  <div class="container">
+    <h1>Login</h1>
+    <form id="login-form">
+      <input type="text" id="username" placeholder="Enter username" required />
+      <button type="submit">Login</button>
+    </form>
+    <p id="message"></p>
+
+    <div style="margin-top: 20px;">
+      <a href="index.html">← Back to Main Page</a>
+    </div>
+  </div>
 
   <script>
     const form = document.getElementById('login-form');
@@ -39,7 +47,7 @@
         } else {
           messageP.textContent = data.error || 'Login failed';
         }
-      } catch (err) {
+      } catch {
         messageP.textContent = 'Error connecting to server.';
       }
     });
