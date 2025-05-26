@@ -9,9 +9,18 @@
 <body>
   <div class="container">
     <h1>Gaming League Portal</h1>
+    
+    <div id="auth-section">
+      <input type="text" id="username" placeholder="Username" />
+      <button onclick="register()">Register</button>
+      <button onclick="login()">Login</button>
+      <button onclick="logout()">Logout</button>
+      <p id="balance">Not logged in</p>
+    </div>
+
     <button onclick="showCalculateOverall()">Calculate Overall</button>
     <button onclick="showSimulateLeagues()">Simulate Leagues</button>
-    <button disabled>Place Bets (coming soon)</button>
+    <button onclick="showPlaceBets()">Place Bets</button>
     <button onclick="showLookupPlayer()">Lookup Player Overall</button>
 
     <div id="calculate-overall-section" style="display:none; margin-top:20px;">
@@ -40,6 +49,15 @@
       </select>
       <button onclick="lookupPlayerOverall()">Lookup Overall</button>
       <p id="player-overall-result"></p>
+    </div>
+
+    <div id="place-bets-section" style="display:none; margin-top:20px;">
+      <h2>Place Bets</h2>
+      <input type="text" id="game" placeholder="Game (e.g. Miami vs Georgia)" />
+      <input type="text" id="team" placeholder="Team to win (e.g. Georgia)" />
+      <input type="number" id="bet-amount" placeholder="Amount (Coins)" />
+      <button onclick="placeBet()">Place Bet</button>
+      <p id="bet-result"></p>
     </div>
   </div>
 
