@@ -42,16 +42,15 @@ def get_overall_from_csv(score_impact, risk_factor, activity, filename='gaming_l
 
 def run_simulation(league):
     teams = ['Team A', 'Team B', 'Team C', 'Team D']
-    results = {team: {'wins': 0, 'losses': 0} for team in teams}
+    results = {team: 0 for team in teams}
 
     for i in range(len(teams)):
         for j in range(i + 1, len(teams)):
             winner = random.choice([teams[i], teams[j]])
-            loser = teams[i] if winner == teams[j] else teams[j]
-            results[winner]['wins'] += 1
-            results[loser]['losses'] += 1
+            results[winner] += 1
 
-    standings = [(team, data['wins'], data['losses']) for team, data in sorted(results.items(), key=lambda x: -x[1]['wins'])]
+    sorted_results = sorted(results.items(), key=lambda x: -x[1])
+    standings = [team for team, _ in sorted_results]
 
     return {
         'standings': standings,
