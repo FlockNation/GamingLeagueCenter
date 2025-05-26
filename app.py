@@ -6,7 +6,7 @@ app = Flask(__name__, static_folder='static')
 
 @app.route('/')
 def index():
-    return send_from_directory('templates', 'index.html')
+    return render_template('index.html')
 
 @app.route('/simulate', methods=['POST'])
 def simulate_route():
