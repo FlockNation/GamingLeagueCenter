@@ -85,11 +85,32 @@ def get_player_overall(player_name, filename='tableConvert.com_03cn1x.csv'):
         pass
     return None
 
+import random
+from collections import defaultdict
+
 def run_simulation(league):
     teams = ['Colorado', 'Philadelphia', 'Alaska', 'Georgia', 'Miami']
-    import random
-    standings = [(team, random.randint(0, 4)) for team in teams]
-    standings.sort(key=lambda x: x[1], reverse=True)
+    games_per_team = 4
+    total_games = (len(teams) * games_per_team) // 2
+
+    matchups = set()
+    while len(matchups) < total_games:
+        t1, t2 = random.sample(teams, 2)
+        if (t1, t2) not in matchups and (t2, t1) not in matchups:
+            matchups.add((t1, t2))
+
+    wins = defaultdict(int)
+    for t1, t2 in matchups:
+        winner = random.choice([t1, t2])
+        wins[winner] += 1
+
+    standings = sorted(wins.items(), key=lambda x: x[1], reverse=True)
+
+    for team in teams:
+        if team not in wins:
+            standings.append((team, 0))
+
+    standings = sorted(standings, key=lambda x: x[1], reverse=True)
 
     playoffs = {
         'semis': [(standings[0][0], standings[3][0]), (standings[1][0], standings[2][0])],
@@ -97,9 +118,10 @@ def run_simulation(league):
         'champion': standings[0][0]
     }
 
-    lottery = [team for team, wins in reversed(standings)]
+    lottery = [team for team, _ in reversed(standings)]
 
     return {
+        'matchups': list(matchups),
         'standings': standings,
         'playoffs': playoffs,
         'lottery': lottery
