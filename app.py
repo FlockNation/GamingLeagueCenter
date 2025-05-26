@@ -23,6 +23,11 @@ def load_user(user_id):
         return User(user_id)
     return None
 
+@app.route('/place_bets')
+@login_required
+def place_bets_page():
+    return render_template('place_bets.html')
+
 @app.route('/')
 def index():
     return render_template('index.html')
