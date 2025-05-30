@@ -126,25 +126,45 @@ async function calculateOverall() {
 }
 
 async function simulate() {
-  const league = document.getElementById('league').value;
-  const response = await fetch('/simulate', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ league })
-  });
-  const data = await response.json();
-  const totalGamesPerTeam = data.standings.length - 1;
   const results = document.getElementById('results');
-  results.innerHTML = `
-    <h2>Standings</h2>
-    <ul>${data.standings.map(t => `<li>${t[0]}: ${t[1]}W - ${totalGamesPerTeam - t[1]}L</li>`).join('')}</ul>
-    <h2>Playoffs</h2>
-    <p>Semifinals: ${data.playoffs.semis[0][0]} vs ${data.playoffs.semis[0][1]} and ${data.playoffs.semis[1][0]} vs ${data.playoffs.semis[1][1]}</p>
-    <p>Final: ${data.playoffs.final[0]} vs ${data.playoffs.final[1]}</p>
-    <p>Champion: <strong>${data.playoffs.champion}</strong></p>
-    <h2>Draft Lottery</h2>
-    <ol>${data.lottery.map(team => `<li>${team}</li>`).join('')}</ol>
-  `;
+  const league = document.getElementById('league').value;
+
+  results.innerHTML = '<p>Loading simulation...</p>';
+
+  try {
+    const response = await fetch('/simulate', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ league }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Server error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.standings || !data.playoffs || !data.lottery) {
+      throw new Error('Incomplete simulation data received.');
+    }
+
+    const totalGamesPerTeam = data.standings.length - 1;
+
+    results.innerHTML = `
+      <h2>Standings</h2>
+      <ul>
+        ${data.standings.map(t => `<li>${t[0]}: ${t[1]}W - ${totalGamesPerTeam - t[1]}L</li>`).join('')}
+      </ul>
+      <h2>Playoffs</h2>
+      <p>Semifinals: ${data.playoffs.semis[0][0]} vs ${data.playoffs.semis[0][1]} and ${data.playoffs.semis[1][0]} vs ${data.playoffs.semis[1][1]}</p>
+      <p>Final: ${data.playoffs.final[0]} vs ${data.playoffs.final[1]}</p>
+      <p>Champion: <strong>${data.playoffs.champion}</strong></p>
+      <h2>Draft Lottery</h2>
+      <ol>${data.lottery.map(team => `<li>${team}</li>`).join('')}</ol>
+    `;
+  } catch (error) {
+    results.innerHTML = `<p style="color:red;">Error: ${error.message}</p>`;
+  }
 }
 
 async function loadPlayers() {
