@@ -216,7 +216,7 @@ def run_simulation(league):
             'Eliminator 2': (q1_loser, elim1_winner)
         }
 
-    else:  # IGL
+    else:
         team1, team2 = standings[0][0], standings[1][0]
         final_teams = (team1, team2)
         champion = random.choice(final_teams)
