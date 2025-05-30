@@ -214,16 +214,17 @@ def run_simulation(league):
         final_teams = (seed1, q1_winner) if random.choice([True, False]) else (seed1, elim2_winner)
         champion = random.choice(final_teams)
 
-        semis = [
-            [seed2, seed3],
-            [seed4, seed5],
-            [q1_loser, elim1_winner]
-        ]
+        semis = {
+            'Qualifier 1': (seed2, seed3),
+            'Eliminator 1': (seed4, seed5),
+            'Eliminator 2': (q1_loser, elim1_winner)
+        }
+
     else:
         team1, team2 = standings[0][0], standings[1][0]
         final_teams = (team1, team2)
         champion = random.choice(final_teams)
-        semis = []
+        semis = {}
 
     lottery = [team for team, _ in reversed(standings) if team not in final_teams]
 
