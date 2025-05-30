@@ -58,6 +58,9 @@ def login():
         return jsonify({'error': 'User not found'}), 404
     user = User(username)
     login_user(user)
+
+    session.permanent = True
+    
     return jsonify({'message': 'Logged in', 'balance': users[username]['balance']})
 
 @app.route('/logout', methods=['POST'])
