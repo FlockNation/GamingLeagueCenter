@@ -128,28 +128,21 @@ async function calculateOverall() {
 async function simulate() {
   const results = document.getElementById('results');
   const league = document.getElementById('league').value;
-
   results.innerHTML = '<p>Loading simulation...</p>';
-
   try {
     const response = await fetch('/simulate', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({ league }),
     });
-
     if (!response.ok) {
       throw new Error(`Server error: ${response.statusText}`);
     }
-
     const data = await response.json();
-
     if (!data.standings || !data.playoffs || !data.lottery) {
       throw new Error('Incomplete simulation data received.');
     }
-
     const totalGamesPerTeam = data.standings.length - 1;
-
     results.innerHTML = `
       <h2>Standings</h2>
       <ul>
