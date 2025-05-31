@@ -50,9 +50,9 @@ def run_simulation(league):
         from collections import OrderedDict
 
         semis = OrderedDict([
-            ('Qualifier 1', (seed2, seed3)),
+            ('Eliminator 2', (q1_loser, elim1_winner)),
             ('Eliminator 1', (seed4, seed5)),
-            ('Eliminator 2', (q1_loser, elim1_winner))
+            ('Qualifier 1', (seed2, seed3))
         ])
 
         lottery = [team for team, _ in overall_standings[5:]]
