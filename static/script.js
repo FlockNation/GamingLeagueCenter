@@ -140,36 +140,81 @@ async function simulate() {
     }
     const data = await response.json();
     console.log(data);
+
     if (
       !data.standings ||
       !data.playoffs ||
-      !data.lottery ||
-      typeof data.playoffs.semis !== 'object' ||
-      !Array.isArray(data.playoffs.final) ||
-      data.playoffs.final.length < 2 ||
-      !data.playoffs.champion
+      !data.lottery
     ) {
       throw new Error('Incomplete simulation data received.');
     }
 
-    const totalGamesPerTeam = data.standings.length - 1;
-    results.innerHTML = `
-      <h2>Standings</h2>
-      <ul>
-        ${data.standings.map(t => `<li>${t[0]}: ${t[1]}W - ${totalGamesPerTeam - t[1]}L</li>`).join('')}
-      </ul>
-      <h2>Playoffs</h2>
-      <p>Semifinals:</p>
-      <ul>
-        ${Object.entries(data.playoffs.semis).map(([round, teams]) => {
-          return `<li>${round}: ${teams[0]} vs ${teams[1]}</li>`;
-        }).join('')}
-      </ul>
-      <p>Final: ${data.playoffs.final[0]} vs ${data.playoffs.final[1]}</p>
-      <p>Champion: <strong>${data.playoffs.champion}</strong></p>
-      <h2>Draft Lottery</h2>
-      <ol>${data.lottery.map(team => `<li>${team}</li>`).join('')}</ol>
-    `;
+    if (league.toUpperCase() === 'SLOG') {
+      if (
+        typeof data.standings !== 'object' ||
+        !data.standings.Canada || !data.standings.USA ||
+        typeof data.playoffs.semis !== 'object' ||
+        !Array.isArray(data.playoffs.final) ||
+        data.playoffs.final.length !== 3 ||
+        !data.playoffs.champion
+      ) {
+        throw new Error('Incomplete simulation data received for SLOG.');
+      }
+
+      results.innerHTML = `
+        <h2>Standings</h2>
+        <h3>Canada Conference</h3>
+        <ul>
+          ${data.standings.Canada.map(t => `<li>${t[0]}: ${t[1]}W</li>`).join('')}
+        </ul>
+        <h3>USA Conference</h3>
+        <ul>
+          ${data.standings.USA.map(t => `<li>${t[0]}: ${t[1]}W</li>`).join('')}
+        </ul>
+
+        <h2>Playoffs</h2>
+        <ul>
+          ${Object.entries(data.playoffs.semis).map(([round, teams]) => {
+            return `<li>${round}: ${teams[0]} vs ${teams[1]}</li>`;
+          }).join('')}
+        </ul>
+
+        <p>Final (3 teams): ${data.playoffs.final.join(' vs ')}</p>
+        <p>Champion: <strong>${data.playoffs.champion}</strong></p>
+
+        <h2>Draft Lottery</h2>
+        <ol>${data.lottery.map(team => `<li>${team}</li>`).join('')}</ol>
+      `;
+    } else {
+      if (
+        !Array.isArray(data.standings) ||
+        typeof data.playoffs.semis !== 'object' ||
+        !Array.isArray(data.playoffs.final) ||
+        data.playoffs.final.length < 2 ||
+        !data.playoffs.champion
+      ) {
+        throw new Error('Incomplete simulation data received.');
+      }
+
+      const totalGamesPerTeam = data.standings.length - 1;
+      results.innerHTML = `
+        <h2>Standings</h2>
+        <ul>
+          ${data.standings.map(t => `<li>${t[0]}: ${t[1]}W - ${totalGamesPerTeam - t[1]}L</li>`).join('')}
+        </ul>
+        <h2>Playoffs</h2>
+        <p>Semifinals:</p>
+        <ul>
+          ${Object.entries(data.playoffs.semis).map(([round, teams]) => {
+            return `<li>${round}: ${teams[0]} vs ${teams[1]}</li>`;
+          }).join('')}
+        </ul>
+        <p>Final: ${data.playoffs.final[0]} vs ${data.playoffs.final[1]}</p>
+        <p>Champion: <strong>${data.playoffs.champion}</strong></p>
+        <h2>Draft Lottery</h2>
+        <ol>${data.lottery.map(team => `<li>${team}</li>`).join('')}</ol>
+      `;
+    }
   } catch (error) {
     results.innerHTML = `<p style="color:red;">Error: ${error.message}</p>`;
   }
