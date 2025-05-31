@@ -152,8 +152,7 @@ async function simulate() {
       
       if (
         typeof data.standings !== 'object' ||
-        !Array.isArray(data.standings.Canada) ||
-        !Array.isArray(data.standings.USA) ||
+        !Array.isArray(data.standings) ||
         typeof data.playoffs.semis !== 'object' ||
         !Array.isArray(data.playoffs.final) ||
         data.playoffs.final.length !== 3 ||
@@ -162,13 +161,9 @@ async function simulate() {
         throw new Error('Incomplete simulation data received for SLOG.');
       }
       results.innerHTML = `
-        <h2>Canada Conference Standings</h2>
+        <h2>Standings</h2>
         <ul>
-          ${data.standings.Canada.map(t => `<li>${t[0]}: ${formatRecord(t, league)}</li>`).join('')}
-        </ul>
-        <h2>USA Conference Standings</h2>
-        <ul>
-          ${data.standings.USA.map(t => `<li>${t[0]}: ${formatRecord(t, league)}</li>`).join('')}
+          ${data.standings.map(t => `<li>${t[0]}: ${t[1]}W</li>`).join('')}
         </ul>
         <h2>Playoffs</h2>
         <ul>
