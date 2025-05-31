@@ -2,7 +2,9 @@ import random
 from collections import defaultdict
 
 def run_simulation(league):
-    if league.upper() == 'SLOG':
+    league = league.upper()
+
+    if league == 'SLOG':
         canada_conf = ['Vancouver', 'Montreal', 'Quebec City', 'Toronto']
         usa_conf = ['Los Angeles', 'San Jose', 'New York', 'Indiana']
         teams = canada_conf + usa_conf
@@ -13,7 +15,8 @@ def run_simulation(league):
                 for j in range(i + 1, len(conf)):
                     for _ in range(3):  # each pair plays 3 games
                         matchups.append((conf[i], conf[j]))
-    else:
+
+    else:  # Default or 'IGL'
         teams = ['Colorado', 'Philadelphia', 'Alaska', 'Georgia', 'Miami']
         matchups = [(teams[i], teams[j]) for i in range(len(teams)) for j in range(i + 1, len(teams))]
 
@@ -26,7 +29,7 @@ def run_simulation(league):
     standings = [(team, wins.get(team, 0)) for team in teams]
     standings.sort(key=lambda x: x[1], reverse=True)
 
-    if league.upper() == 'SLOG':
+    if league == 'SLOG':
         playoff_teams = [team for team, _ in standings[:5]]
         seed1, seed2, seed3, seed4, seed5 = playoff_teams
 
@@ -44,6 +47,7 @@ def run_simulation(league):
             'Eliminator 1': (seed4, seed5),
             'Eliminator 2': (q1_loser, elim1_winner)
         }
+
     else:
         team1, team2 = standings[0][0], standings[1][0]
         final_teams = (team1, team2)
