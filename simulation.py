@@ -47,11 +47,13 @@ def run_simulation(league):
         final_teams = [seed1, q1_winner, elim2_winner]
         champion = random.choice(final_teams)
 
-        semis = {
-            'Qualifier 1': (seed2, seed3),
-            'Eliminator 1': (seed4, seed5),
-            'Eliminator 2': (q1_loser, elim1_winner)
-        }
+        from collections import OrderedDict
+
+        semis = OrderedDict([
+            ('Qualifier 1', (seed2, seed3)),
+            ('Eliminator 1', (seed4, seed5)),
+            ('Eliminator 2', (q1_loser, elim1_winner))
+        ])
 
         lottery = [team for team, _ in overall_standings[5:]]
 
