@@ -200,11 +200,15 @@ def run_simulation(league):
         teams = canada_conf + usa_conf
 
         matchups = []
+
         for conf in [canada_conf, usa_conf]:
-            for i in range(len(conf)):
-                for j in range(i + 1, len(conf)):
-                    for _ in range(3):
-                        matchups.append((conf[i], conf[j]))
+            for team in conf:
+                opponents = [t for t in conf if t != team]
+                selected_opponents = random.sample(opponents, 3)
+                for opp in selected_opponents:
+                    pair = tuple(sorted([team, opp]))
+                    if pair not in matchups:
+                        matchups.append(pair)
 
     else:
         teams = ['Colorado', 'Philadelphia', 'Alaska', 'Georgia', 'Miami']
