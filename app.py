@@ -112,19 +112,13 @@ def get_balance():
 @app.route('/simulate', methods=['POST'])
 def simulate_route():
     data = request.json
-    league = data.get('league', 'IGL')
-
-    if league == 'IGL':
-        league = data.get('league', 'IGL').upper()
-        result = run_simulation(league)
-    else:
-        league = data.get('league', 'SLOG').upper()
-        result = run_simulation(league)
-
+    league = data.get('league', 'SLOG').upper()
+    
+    print(f"Received simulation request for league: {league}")
+    result = run_simulation(league)
     print("SIMULATION RESULT:", result)
-
+    
     return jsonify(result)
-
 
 @app.route('/calculate_overall', methods=['POST'])
 def calculate_overall_route():
