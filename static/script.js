@@ -140,21 +140,21 @@ async function simulate() {
     }
     const data = await response.json();
     console.log(data);
-
     if (
       !data.standings ||
       !data.playoffs ||
       !data.lottery ||
-      !Array.isArray(data.playoffs.semis) ||
-      data.playoffs.semis.length < 2 ||
-      !Array.isArray(data.playoffs.semis[0]) ||
-      !Array.isArray(data.playoffs.semis[1]) ||
+      typeof data.playoffs.semis !== 'object' ||
+      !Array.isArray(data.playoffs.semis.east) ||
+      !Array.isArray(data.playoffs.semis.west) ||
       !Array.isArray(data.playoffs.final) ||
       data.playoffs.final.length < 2 ||
       !data.playoffs.champion
     ) {
       throw new Error('Incomplete simulation data received.');
     }
+
+
 
     const totalGamesPerTeam = data.standings.length - 1;
     results.innerHTML = `
