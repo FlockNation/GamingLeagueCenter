@@ -23,32 +23,33 @@ def run_simulation(league):
 
         canada_standings = [(team, wins.get(team, 0)) for team in canada_conf]
         usa_standings = [(team, wins.get(team, 0)) for team in usa_conf]
-
         canada_standings.sort(key=lambda x: x[1], reverse=True)
         usa_standings.sort(key=lambda x: x[1], reverse=True)
 
         overall_standings = [(team, wins.get(team, 0)) for team in teams]
         overall_standings.sort(key=lambda x: x[1], reverse=True)
 
-        playoff_teams = [team for team, _ in overall_standings[:5]]
-        seed1, seed2, seed3, seed4, seed5 = playoff_teams
+        seed1 = overall_standings[0][0]
+        seed2 = overall_standings[1][0]
+        seed3 = overall_standings[2][0]
+        seed4 = overall_standings[3][0]
+        seed5 = overall_standings[4][0]
 
         q1_winner = random.choice([seed2, seed3])
         q1_loser = seed3 if q1_winner == seed2 else seed2
+        elim1_winner = random.choice([seed4, seed5])
+        elim2_winner = random.choice([q1_loser, elim1_winner])
 
-        elim_winner = random.choice([seed4, seed5])
-        q2_winner = random.choice([q1_loser, elim_winner])
-
-        final_teams = (seed1, q1_winner, q2_winner)
+        final_teams = [seed1, q1_winner, elim2_winner]
         champion = random.choice(final_teams)
 
         semis = {
             'Qualifier 1': (seed2, seed3),
-            'Eliminator': (seed4, seed5),
-            'Qualifier 2': (q1_loser, elim_winner)
+            'Eliminator 1': (seed4, seed5),
+            'Qualifier 2': (q1_loser, elim1_winner)
         }
 
-        lottery = [team for team, _ in reversed(overall_standings) if team not in final_teams]
+        lottery = [team for team, _ in overall_standings[5:]]
 
         return {
             'matchups': matchups,
@@ -77,7 +78,7 @@ def run_simulation(league):
         standings.sort(key=lambda x: x[1], reverse=True)
 
         team1, team2 = standings[0][0], standings[1][0]
-        final_teams = (team1, team2)
+        final_teams = [team1, team2]
         champion = random.choice(final_teams)
         semis = {}
 
