@@ -225,3 +225,34 @@ async function loadPlayers() {
     select.innerHTML = '<option value="">Error loading players</option>';
   }
 }
+
+async function lookupPlayerOverall() {
+  const select = document.getElementById('player-select');
+  const player = select.value;
+
+  if (!player) {
+    document.getElementById('player-overall-result').textContent = 'Please select a player.';
+    return;
+  }
+
+  try {
+    const res = await fetch('/player_overall', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ player })
+    });
+
+    const data = await res.json();
+
+    if (data.error) {
+      document.getElementById('player-overall-result').textContent = 'Error: ' + data.error;
+    } else {
+      document.getElementById('player-overall-result').textContent = `${player}'s overall: ${data.overall}`;
+    }
+  } catch (err) {
+    console.error('Failed to fetch player overall:', err);
+    document.getElementById('player-overall-result').textContent = 'Error fetching data.';
+  }
+}
