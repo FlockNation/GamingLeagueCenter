@@ -1,222 +1,239 @@
-function hideAllSections() {
-  document.getElementById('calculate-overall-section').style.display = 'none';
-  document.getElementById('simulate-leagues-section').style.display = 'none';
-  document.getElementById('lookup-player-section').style.display = 'none';
-  const loginForm = document.getElementById('login-form');
-  if (loginForm) loginForm.remove();
-  clearResults();
-}
+from flask import Flask, request, jsonify, render_template, session
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from flask_cors import CORS
+import csv
+import random
+from collections import defaultdict
 
-function clearResults() {
-  document.getElementById('overall-result').textContent = '';
-  document.getElementById('results').innerHTML = '';
-  document.getElementById('player-overall-result').textContent = '';
-}
+app = Flask(__name__)
+app.secret_key = 'your-secret-key'
+CORS(app, supports_credentials=True)
 
-function showCalculateOverall() {
-  hideAllSections();
-  document.getElementById('calculate-overall-section').style.display = 'block';
-}
+login_manager = LoginManager()
+login_manager.init_app(app)
 
-function showSimulateLeagues() {
-  hideAllSections();
-  document.getElementById('simulate-leagues-section').style.display = 'block';
-}
+users = {}
 
-function showLookupPlayer() {
-  hideAllSections();
-  document.getElementById('lookup-player-section').style.display = 'block';
-  loadPlayers();
-}
+class User(UserMixin):
+    def __init__(self, username):
+        self.id = username
 
-function showLoginForm() {
-  hideAllSections();
-  clearResults();
-  const container = document.querySelector('.container');
-  const existingForm = document.getElementById('login-form');
-  if (existingForm) existingForm.remove();
-  const form = document.createElement('div');
-  form.id = 'login-form';
-  form.innerHTML = `
-    <h2>Login</h2>
-    <input type="text" id="login-username" placeholder="Username" />
-    <button onclick="loginUser()">Login</button>
-    <p id="login-message"></p>
-    <hr />
-    <h3>Register</h3>
-    <input type="text" id="register-username" placeholder="New Username" />
-    <button onclick="registerUser()">Register</button>
-    <p id="register-message"></p>
-  `;
-  container.appendChild(form);
-}
+    @property
+    def balance(self):
+        return users.get(self.id, {}).get('balance', 0)
 
-async function loginUser() {
-  const username = document.getElementById('login-username').value.trim();
-  const msg = document.getElementById('login-message');
-  if (!username) {
-    msg.textContent = 'Please enter a username.';
-    return;
-  }
-  try {
-    const res = await fetch('/login', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ username })
-    });
-    const data = await res.json();
-    if (res.ok) {
-      msg.style.color = 'green';
-      msg.textContent = `Logged in! Balance: ${data.balance}`;
-      setTimeout(() => {
-        window.location.href = '/place_bets';
-      }, 1000);
-    } else {
-      msg.style.color = 'red';
-      msg.textContent = data.error || 'Login failed';
+@login_manager.user_loader
+def load_user(user_id):
+    if user_id in users:
+        return User(user_id)
+    return None
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/place_bets')
+@login_required
+def place_bets_page():
+    return render_template('place_bets.html')
+
+@app.route('/register', methods=['POST'])
+def register():
+    username = request.json.get('username')
+    if not username:
+        return jsonify({'error': 'Username required'}), 400
+    if username in users:
+        return jsonify({'error': 'Username already exists'}), 400
+    users[username] = {'balance': 1000}
+    return jsonify({'message': 'User registered successfully', 'balance': users[username]['balance']})
+
+@app.route('/login', methods=['POST'])
+def login():
+    username = request.json.get('username')
+    if not username:
+        return jsonify({'error': 'Username required'}), 400
+    if username not in users:
+        return jsonify({'error': 'User not found'}), 404
+    user = User(username)
+    login_user(user)
+    session.permanent = True
+    return jsonify({'message': 'Logged in', 'balance': users[username]['balance']})
+
+@app.route('/logout', methods=['POST'])
+@login_required
+def logout():
+    logout_user()
+    return jsonify({'message': 'Logged out'})
+
+@app.route('/place_bet', methods=['POST'])
+@login_required
+def place_bet():
+    data = request.json
+    game = data.get('game')
+    team = data.get('team')
+    amount = data.get('amount')
+    if not game or not team or amount is None:
+        return jsonify({'error': 'Missing bet details'}), 400
+    try:
+        amount = int(amount)
+        if amount <= 0:
+            return jsonify({'error': 'Bet amount must be positive'}), 400
+    except ValueError:
+        return jsonify({'error': 'Invalid bet amount'}), 400
+    username = current_user.id
+    if users[username]['balance'] < amount:
+        return jsonify({'error': 'Not enough coins'}), 400
+    users[username]['balance'] -= amount
+    if 'bets' not in users[username]:
+        users[username]['bets'] = []
+    users[username]['bets'].append({'game': game, 'team': team, 'amount': amount})
+    return jsonify({'message': f'Bet placed on {team} for {amount} coins.', 'balance': users[username]['balance']})
+
+@app.route('/get_balance')
+@login_required
+def get_balance():
+    username = current_user.id
+    balance = users.get(username, {}).get('balance', 0)
+    return jsonify({'balance': balance})
+
+@app.route('/simulate', methods=['POST'])
+def simulate_route():
+    data = request.json
+    league = data.get('league', 'IGL')
+    result = run_simulation(league)
+    return jsonify(result)
+
+@app.route('/calculate_overall', methods=['POST'])
+def calculate_overall_route():
+    data = request.json
+    score_impact = data.get('score_impact')
+    risk_factor = data.get('risk_factor')
+    activity = data.get('activity')
+    if not all(isinstance(x, int) for x in [score_impact, risk_factor, activity]):
+        return jsonify({'error': 'Invalid input'}), 400
+    overall = get_overall_from_csv(score_impact, risk_factor, activity)
+    if overall is None:
+        return jsonify({'error': 'Combination not found'}), 404
+    return jsonify({'overall': overall})
+
+@app.route('/players', methods=['GET'])
+def players_route():
+    players = []
+    try:
+        with open('tableConvert.com_grbjkn.csv', newline='', encoding='utf-8') as csvfile:
+            reader = csv.DictReader(csvfile)
+            seen = set()
+            for row in reader:
+                player = row.get('player') or row.get('Player') or next(iter(row.values())).strip()
+                if player and player not in seen:
+                    seen.add(player)
+                    players.append(player)
+    except Exception:
+        pass
+    return jsonify({'players': players})
+
+@app.route('/player_overall', methods=['POST'])
+def player_overall_route():
+    data = request.json
+    player_name = data.get('player')
+    if not player_name:
+        return jsonify({'error': 'No player specified'}), 400
+    overall = get_player_overall(player_name)
+    if overall is None:
+        return jsonify({'error': 'Player not found'}), 404
+    return jsonify({'overall': overall})
+
+def get_overall_from_csv(score_impact, risk_factor, activity, filename='gaming_league_overall.csv'):
+    try:
+        with open(filename, mode='r') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                if (int(row['ScoreImpact']) == score_impact and
+                    int(row['RiskFactor']) == risk_factor and
+                    int(row['Activity']) == activity):
+                    return int(row['Overall'])
+    except:
+        pass
+    return None
+
+def get_player_overall(player_name):
+    try:
+        with open('tableConvert.com_grbjkn.csv', newline='', encoding='utf-8') as player_file, \
+             open('tableConvert.com_03cn1x.csv', newline='', encoding='utf-8') as overall_file:
+            player_reader = csv.DictReader(player_file)
+            overall_reader = csv.DictReader(overall_file)
+            players = [row['player'] for row in player_reader]
+            overalls = [int(row['player_overall']) for row in overall_reader]
+            if player_name in players:
+                index = players.index(player_name)
+                return overalls[index]
+    except:
+        pass
+    return None
+
+def run_simulation(league):
+    if league.upper() == 'SLOG':
+        canada_conf = ['Vancouver', 'Montreal', 'Quebec City', 'Toronto']
+        usa_conf = ['Los Angeles', 'San Jose', 'New York', 'Indiana']
+        teams = canada_conf + usa_conf
+
+        matchups = []
+        for conf in [canada_conf, usa_conf]:
+            for i in range(len(conf)):
+                for j in range(i + 1, len(conf)):
+                    for _ in range(3):
+                        matchups.append((conf[i], conf[j]))
+
+    else:
+        teams = ['Colorado', 'Philadelphia', 'Alaska', 'Georgia', 'Miami']
+        matchups = [(teams[i], teams[j]) for i in range(len(teams)) for j in range(i + 1, len(teams))]
+
+    wins = defaultdict(int)
+    for t1, t2 in matchups:
+        winner = random.choice([t1, t2])
+        wins[winner] += 1
+
+    standings = [(team, wins.get(team, 0)) for team in teams]
+    standings.sort(key=lambda x: x[1], reverse=True)
+
+    if league.upper() == 'SLOG':
+        playoff_teams = [team for team, _ in standings[:5]]
+        seed1, seed2, seed3, seed4, seed5 = playoff_teams
+
+        q1_winner = random.choice([seed2, seed3])
+        q1_loser = seed3 if q1_winner == seed2 else seed2
+
+        elim1_winner = random.choice([seed4, seed5])
+
+        elim2_winner = random.choice([q1_loser, elim1_winner])
+
+        final_teams = (seed1, q1_winner) if random.choice([True, False]) else (seed1, elim2_winner)
+        champion = random.choice(final_teams)
+
+        semis = {
+            'Qualifier 1': (seed2, seed3),
+            'Eliminator 1': (seed4, seed5),
+            'Eliminator 2': (q1_loser, elim1_winner)
+        }
+
+    else:
+        team1, team2 = standings[0][0], standings[1][0]
+        final_teams = (team1, team2)
+        champion = random.choice(final_teams)
+        semis = {}
+
+    lottery = [team for team, _ in reversed(standings) if team not in final_teams]
+
+    return {
+        'matchups': matchups,
+        'standings': standings,
+        'playoffs': {
+            'semis': semis,
+            'final': final_teams,
+            'champion': champion
+        },
+        'lottery': lottery
     }
-  } catch {
-    msg.style.color = 'red';
-    msg.textContent = 'Error during login.';
-  }
-}
 
-async function registerUser() {
-  const username = document.getElementById('register-username').value.trim();
-  const msg = document.getElementById('register-message');
-  if (!username) {
-    msg.textContent = 'Please enter a username.';
-    return;
-  }
-  try {
-    const res = await fetch('/register', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ username })
-    });
-    const data = await res.json();
-    if (res.ok) {
-      msg.style.color = 'green';
-      msg.textContent = 'User registered! You can now log in.';
-    } else {
-      msg.style.color = 'red';
-      msg.textContent = data.error || 'Registration failed';
-    }
-  } catch {
-    msg.style.color = 'red';
-    msg.textContent = 'Error during registration.';
-  }
-}
-
-async function calculateOverall() {
-  const score_impact = parseInt(document.getElementById('score_impact').value);
-  const risk_factor = parseInt(document.getElementById('risk_factor').value);
-  const activity = parseInt(document.getElementById('activity').value);
-  const res = await fetch('/calculate_overall', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ score_impact, risk_factor, activity })
-  });
-  const data = await res.json();
-  if (res.ok) {
-    document.getElementById('overall-result').textContent = `Overall Rating: ${data.overall}`;
-  } else {
-    document.getElementById('overall-result').textContent = data.error || 'Error calculating overall';
-  }
-}
-
-async function simulate() {
-  const results = document.getElementById('results');
-  const league = document.getElementById('league').value;
-  results.innerHTML = '<p>Loading simulation...</p>';
-  try {
-    const response = await fetch('/simulate', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ league }),
-    });
-    if (!response.ok) {
-      throw new Error(`Server error: ${response.statusText}`);
-    }
-    const data = await response.json();
-    console.log(data);
-    if (
-      !data.standings ||
-      !data.playoffs ||
-      !data.lottery ||
-      typeof data.playoffs.semis !== 'object' ||
-      !Array.isArray(data.playoffs.semis.east) ||
-      !Array.isArray(data.playoffs.semis.west) ||
-      !Array.isArray(data.playoffs.final) ||
-      data.playoffs.final.length < 2 ||
-      !data.playoffs.champion
-    ) {
-      throw new Error('Incomplete simulation data received.');
-    }
-
-
-
-    const totalGamesPerTeam = data.standings.length - 1;
-    results.innerHTML = `
-      <h2>Standings</h2>
-      <ul>
-        ${data.standings.map(t => `<li>${t[0]}: ${t[1]}W - ${totalGamesPerTeam - t[1]}L</li>`).join('')}
-      </ul>
-      <h2>Playoffs</h2>
-      <p>Semifinals: ${data.playoffs.semis[0][0]} vs ${data.playoffs.semis[0][1]} and ${data.playoffs.semis[1][0]} vs ${data.playoffs.semis[1][1]}</p>
-      <p>Final: ${data.playoffs.final[0]} vs ${data.playoffs.final[1]}</p>
-      <p>Champion: <strong>${data.playoffs.champion}</strong></p>
-      <h2>Draft Lottery</h2>
-      <ol>${data.lottery.map(team => `<li>${team}</li>`).join('')}</ol>
-    `;
-  } catch (error) {
-    results.innerHTML = `<p style="color:red;">Error: ${error.message}</p>`;
-  }
-}
-
-async function loadPlayers() {
-  const select = document.getElementById('player-select');
-  select.innerHTML = '<option value="">Loading players...</option>';
-  try {
-    const res = await fetch('/players');
-    const data = await res.json();
-    if (data.players && data.players.length > 0) {
-      select.innerHTML = '<option value="">Select a player</option>';
-      data.players.forEach(player => {
-        const option = document.createElement('option');
-        option.value = player;
-        option.textContent = player;
-        select.appendChild(option);
-      });
-    } else {
-      select.innerHTML = '<option value="">No players found</option>';
-    }
-  } catch {
-    select.innerHTML = '<option value="">Failed to load players</option>';
-  }
-}
-
-async function lookupPlayerOverall() {
-  const select = document.getElementById('player-select');
-  const player = select.value;
-  const resultP = document.getElementById('player-overall-result');
-  if (!player) {
-    resultP.textContent = 'Please select a player.';
-    return;
-  }
-  try {
-    const res = await fetch('/player_overall', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ player })
-    });
-    const data = await res.json();
-    if (res.ok) {
-      resultP.textContent = `Overall rating for ${player}: ${data.overall}`;
-    } else {
-      resultP.textContent = data.error || 'Player not found';
-    }
-  } catch {
-    resultP.textContent = 'Error fetching player overall rating.';
-  }
-}
+if __name__ == '__main__':
+    app.run(debug=True)
