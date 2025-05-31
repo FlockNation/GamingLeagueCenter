@@ -229,7 +229,7 @@ def run_simulation(league):
 
         elim2_winner = random.choice([q1_loser, elim1_winner])
 
-        final_teams = (seed1, q1_winner) if random.choice([True, False]) else (seed1, elim2_winner)
+        final_teams = [seed1, q1_winner, elim2_winner]
         champion = random.choice(final_teams)
 
         semis = {
