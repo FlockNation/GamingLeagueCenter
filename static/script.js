@@ -139,20 +139,12 @@ async function simulate() {
       throw new Error(`Server error: ${response.statusText}`);
     }
     const data = await response.json();
-    console.log(data);
 
-    if (
-      !data.standings ||
-      !data.playoffs ||
-      !data.lottery
-    ) {
-      throw new Error('Incomplete simulation data received.');
-    }
-
-    if (league.toUpperCase() === 'SLOG') {
+    if (league === 'SLOG') {
       if (
         typeof data.standings !== 'object' ||
-        !data.standings.Canada || !data.standings.USA ||
+        !Array.isArray(data.standings.Canada) ||
+        !Array.isArray(data.standings.USA) ||
         typeof data.playoffs.semis !== 'object' ||
         !Array.isArray(data.playoffs.final) ||
         data.playoffs.final.length !== 3 ||
@@ -160,28 +152,21 @@ async function simulate() {
       ) {
         throw new Error('Incomplete simulation data received for SLOG.');
       }
-
       results.innerHTML = `
-        <h2>Standings</h2>
-        <h3>Canada Conference</h3>
+        <h2>Canada Conference Standings</h2>
         <ul>
           ${data.standings.Canada.map(t => `<li>${t[0]}: ${t[1]}W</li>`).join('')}
         </ul>
-        <h3>USA Conference</h3>
+        <h2>USA Conference Standings</h2>
         <ul>
           ${data.standings.USA.map(t => `<li>${t[0]}: ${t[1]}W</li>`).join('')}
         </ul>
-
         <h2>Playoffs</h2>
         <ul>
-          ${Object.entries(data.playoffs.semis).map(([round, teams]) => {
-            return `<li>${round}: ${teams[0]} vs ${teams[1]}</li>`;
-          }).join('')}
+          ${Object.entries(data.playoffs.semis).map(([round, teams]) => `<li>${round}: ${teams[0]} vs ${teams[1]}</li>`).join('')}
         </ul>
-
-        <p>Final (3 teams): ${data.playoffs.final.join(' vs ')}</p>
-        <p>Champion: <strong>${data.playoffs.champion}</strong></p>
-
+        <p><strong>Final:</strong> ${data.playoffs.final.join(' vs ')}</p>
+        <p><strong>Champion:</strong> ${data.playoffs.champion}</p>
         <h2>Draft Lottery</h2>
         <ol>${data.lottery.map(team => `<li>${team}</li>`).join('')}</ol>
       `;
@@ -190,79 +175,29 @@ async function simulate() {
         !Array.isArray(data.standings) ||
         typeof data.playoffs.semis !== 'object' ||
         !Array.isArray(data.playoffs.final) ||
-        data.playoffs.final.length < 2 ||
+        data.playoffs.final.length !== 2 ||
         !data.playoffs.champion
       ) {
         throw new Error('Incomplete simulation data received.');
       }
-
-      const totalGamesPerTeam = data.standings.length - 1;
       results.innerHTML = `
         <h2>Standings</h2>
         <ul>
-          ${data.standings.map(t => `<li>${t[0]}: ${t[1]}W - ${totalGamesPerTeam - t[1]}L</li>`).join('')}
+          ${data.standings.map(t => `<li>${t[0]}: ${t[1]}W</li>`).join('')}
         </ul>
         <h2>Playoffs</h2>
-        <p>Semifinals:</p>
         <ul>
-          ${Object.entries(data.playoffs.semis).map(([round, teams]) => {
-            return `<li>${round}: ${teams[0]} vs ${teams[1]}</li>`;
-          }).join('')}
+          ${Object.entries(data.playoffs.semis).map(([round, teams]) => `<li>${round}: ${teams[0]} vs ${teams[1]}</li>`).join('')}
         </ul>
-        <p>Final: ${data.playoffs.final[0]} vs ${data.playoffs.final[1]}</p>
-        <p>Champion: <strong>${data.playoffs.champion}</strong></p>
+        <p><strong>Final:</strong> ${data.playoffs.final.join(' vs ')}</p>
+        <p><strong>Champion:</strong> ${data.playoffs.champion}</p>
         <h2>Draft Lottery</h2>
         <ol>${data.lottery.map(team => `<li>${team}</li>`).join('')}</ol>
       `;
     }
   } catch (error) {
-    results.innerHTML = `<p style="color:red;">Error: ${error.message}</p>`;
+    results.innerHTML = `<p style="color: red;">${error.message}</p>`;
   }
 }
 
-async function loadPlayers() {
-  const select = document.getElementById('player-select');
-  select.innerHTML = '<option value="">Loading players...</option>';
-  try {
-    const res = await fetch('/players');
-    const data = await res.json();
-    if (data.players && data.players.length > 0) {
-      select.innerHTML = '<option value="">Select a player</option>';
-      data.players.forEach(player => {
-        const option = document.createElement('option');
-        option.value = player;
-        option.textContent = player;
-        select.appendChild(option);
-      });
-    } else {
-      select.innerHTML = '<option value="">No players found</option>';
-    }
-  } catch {
-    select.innerHTML = '<option value="">Failed to load players</option>';
-  }
-}
-
-async function lookupPlayerOverall() {
-  const select = document.getElementById('player-select');
-  const player = select.value;
-  const resultP = document.getElementById('player-overall-result');
-  if (!player) {
-    resultP.textContent = 'Please select a player.';
-    return;
-  }
-  try {
-    const res = await fetch('/player_overall', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ player })
-    });
-    const data = await res.json();
-    if (res.ok) {
-      resultP.textContent = `Overall rating for ${player}: ${data.overall}`;
-    } else {
-      resultP.textContent = data.error || 'Player not found';
-    }
-  } catch {
-    resultP.textContent = 'Error fetching player overall rating.';
-  }
-}
+function loadPlayers() {}
