@@ -167,7 +167,7 @@ async function simulate() {
         </ul>
         <h2>Playoffs</h2>
         <ul>
-          ${Object.entries(data.playoffs.semis).map(([round, teams]) => `<li>${round}: ${teams[0]} vs ${teams[1]}</li>`).join('')}
+          ${data.playoffs.semis.map(match => `<li>${match.round}: ${match.teams[0]} vs ${match.teams[1]}</li>`).join('')}
         </ul>
         <p><strong>Final:</strong> ${data.playoffs.final.join(' vs ')}</p>
         <p><strong>Champion:</strong> ${data.playoffs.champion}</p>
