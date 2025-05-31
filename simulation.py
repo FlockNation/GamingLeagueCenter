@@ -2,8 +2,6 @@ import random
 from collections import defaultdict
 import json
 
-print("DEBUG: simulation.py started")
-
 def run_simulation(league):
     league = league.upper()
 
@@ -97,7 +95,3 @@ def run_simulation(league):
             },
             'lottery': lottery
         }
-
-if __name__ == '__main__':
-    result = run_simulation('SLOG')
-    print("DEBUG SIMULATION OUTPUT:", json.dumps(result, indent=2))
