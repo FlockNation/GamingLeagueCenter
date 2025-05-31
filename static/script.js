@@ -139,6 +139,13 @@ async function simulate() {
       throw new Error(`Server error: ${response.statusText}`);
     }
     const data = await response.json();
+    
+    const formatRecord = (teamRecord, league) => {
+      const wins = teamRecord[1];
+      const totalGames = league === 'SLOG' ? 3 : 5;
+      const losses = totalGames - wins;
+      return `${wins}-${losses}`;
+    };
 
     if (league === 'SLOG') {
       if (
@@ -155,11 +162,11 @@ async function simulate() {
       results.innerHTML = `
         <h2>Canada Conference Standings</h2>
         <ul>
-          ${data.standings.Canada.map(t => `<li>${t[0]}: ${t[1]}W</li>`).join('')}
+          ${data.standings.Canada.map(t => `<li>${t[0]}: ${formatRecord(t, league)}</li>`).join('')}
         </ul>
         <h2>USA Conference Standings</h2>
         <ul>
-          ${data.standings.USA.map(t => `<li>${t[0]}: ${t[1]}W</li>`).join('')}
+          ${data.standings.USA.map(t => `<li>${t[0]}: ${formatRecord(t, league)}</li>`).join('')}
         </ul>
         <h2>Playoffs</h2>
         <ul>
@@ -183,7 +190,7 @@ async function simulate() {
       results.innerHTML = `
         <h2>Standings</h2>
         <ul>
-          ${data.standings.map(t => `<li>${t[0]}: ${t[1]}W</li>`).join('')}
+          ${data.standings.map(t => `<li>${t[0]}: ${formatRecord(t, league)}</li>`).join('')}
         </ul>
         <h2>Playoffs</h2>
         <ul>
