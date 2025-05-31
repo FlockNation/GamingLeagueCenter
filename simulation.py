@@ -52,7 +52,7 @@ def run_simulation(league):
 
         lottery = [team for team, _ in overall_standings[5:]]
 
-        result = {
+        return {
             'matchups': matchups,
             'standings': {
                 'Canada': canada_standings,
@@ -65,10 +65,6 @@ def run_simulation(league):
             },
             'lottery': lottery
         }
-
-        print("DEBUG SIMULATION OUTPUT:", json.dumps(result, indent=2))
-
-        return result
 
     else:
         teams = ['Colorado', 'Philadelphia', 'Alaska', 'Georgia', 'Miami']
@@ -99,3 +95,7 @@ def run_simulation(league):
             },
             'lottery': lottery
         }
+
+if __name__ == '__main__':
+    result = run_simulation('SLOG')
+    print("DEBUG SIMULATION OUTPUT:", json.dumps(result, indent=2))
