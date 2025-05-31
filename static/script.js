@@ -145,16 +145,12 @@ async function simulate() {
       !data.playoffs ||
       !data.lottery ||
       typeof data.playoffs.semis !== 'object' ||
-      !Array.isArray(data.playoffs.semis.east) ||
-      !Array.isArray(data.playoffs.semis.west) ||
       !Array.isArray(data.playoffs.final) ||
       data.playoffs.final.length < 2 ||
       !data.playoffs.champion
     ) {
       throw new Error('Incomplete simulation data received.');
     }
-
-
 
     const totalGamesPerTeam = data.standings.length - 1;
     results.innerHTML = `
@@ -163,7 +159,12 @@ async function simulate() {
         ${data.standings.map(t => `<li>${t[0]}: ${t[1]}W - ${totalGamesPerTeam - t[1]}L</li>`).join('')}
       </ul>
       <h2>Playoffs</h2>
-      <p>Semifinals: ${data.playoffs.semis[0][0]} vs ${data.playoffs.semis[0][1]} and ${data.playoffs.semis[1][0]} vs ${data.playoffs.semis[1][1]}</p>
+      <p>Semifinals:</p>
+      <ul>
+        ${Object.entries(data.playoffs.semis).map(([round, teams]) => {
+          return `<li>${round}: ${teams[0]} vs ${teams[1]}</li>`;
+        }).join('')}
+      </ul>
       <p>Final: ${data.playoffs.final[0]} vs ${data.playoffs.final[1]}</p>
       <p>Champion: <strong>${data.playoffs.champion}</strong></p>
       <h2>Draft Lottery</h2>
