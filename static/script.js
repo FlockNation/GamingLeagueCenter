@@ -142,7 +142,7 @@ async function simulate() {
 
     const formatRecord = (teamRecord, league) => {
       const wins = teamRecord[1];
-      const totalGames = league === 'SLOG' ? 3 : 5;
+      const totalGames = league === 'SLOG' ? 3 : 4;
       const losses = totalGames - wins;
       return `${wins}-${losses}`;
     };
