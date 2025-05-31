@@ -112,6 +112,8 @@ def simulate_route():
         league = data.get('league', 'SLOG').upper()
         result = run_simulation(league)
 
+    print("SIMULATION RESULT:", result)
+
     return jsonify(result)
 
 
