@@ -236,13 +236,11 @@ def run_simulation(league):
         final_teams = [seed1, q1_winner, elim2_winner]
         champion = random.choice(final_teams)
 
-        from collections import OrderedDict
-
-        semis = OrderedDict([
-            ('Eliminator 2', (q1_loser, elim1_winner)),
-            ('Eliminator 1', (seed4, seed5)),
-            ('Qualifier 1', (seed2, seed3))
-        ])
+        semis = [
+            {'round': 'Qualifier 1', 'teams': [seed2, seed3]},
+            {'round': 'Eliminator 1', 'teams': [seed4, seed5]},
+            {'round': 'Eliminator 2', 'teams': [q1_loser, elim1_winner]},
+        ]
 
     else:
         team1, team2 = standings[0][0], standings[1][0]
