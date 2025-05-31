@@ -139,6 +139,7 @@ async function simulate() {
       throw new Error(`Server error: ${response.statusText}`);
     }
     const data = await response.json();
+    console.log(data);
 
     if (
       !data.standings ||
