@@ -72,7 +72,23 @@ def run_simulation(league):
 
     else:
         teams = ['Colorado', 'Philadelphia', 'Alaska', 'Georgia', 'Miami']
-        matchups = [(teams[i], teams[j]) for i in range(len(teams)) for j in range(i + 1, len(teams))]
+        games_played = defaultdict(int)
+        matchups = set()
+
+        while any(games_played[team] < 4 for team in teams):
+            t1, t2 = random.sample(teams, 2)
+            if (
+                t1 != t2 and
+                (t1, t2) not in matchups and
+                (t2, t1) not in matchups and
+                games_played[t1] < 4 and
+                games_played[t2] < 4
+            ):
+                matchups.add((t1, t2))
+                games_played[t1] += 1
+                games_played[t2] += 1
+
+        matchups = list(matchups)
 
         wins = defaultdict(int)
         for t1, t2 in matchups:
@@ -85,15 +101,14 @@ def run_simulation(league):
         team1, team2 = standings[0][0], standings[1][0]
         final_teams = [team1, team2]
         champion = random.choice(final_teams)
-        semis = {}
 
         lottery = [team for team, _ in reversed(standings) if team not in final_teams]
 
-        return {
+        output = {
             'matchups': matchups,
             'standings': standings,
             'playoffs': {
-                'semis': semis,
+                'semis': {},
                 'final': final_teams,
                 'champion': champion
             },
