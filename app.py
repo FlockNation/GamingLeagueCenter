@@ -9,6 +9,15 @@ app = Flask(__name__)
 app.secret_key = 'your-secret-key'
 CORS(app, supports_credentials=True)
 
+@app.route('/debug-simulation')
+def debug_simulation():
+    try:
+        with open('simulation.py', 'r') as f:
+            lines = f.readlines()[:20]  # first 20 lines
+        return jsonify({'simulation_py_head': lines})
+    except Exception as e:
+        return jsonify({'error': str(e)})
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 
