@@ -139,7 +139,7 @@ async function simulate() {
       throw new Error(`Server error: ${response.statusText}`);
     }
     const data = await response.json();
-    
+
     const formatRecord = (teamRecord, league) => {
       const wins = teamRecord[1];
       const totalGames = league === 'SLOG' ? 3 : 5;
@@ -148,8 +148,8 @@ async function simulate() {
     };
 
     if (league === 'SLOG') {
-      console.log("DEBUG SLOG DATA:", data)
-      
+      console.log("DEBUG SLOG DATA:", data);
+
       if (
         typeof data.standings !== 'object' ||
         !Array.isArray(data.standings) ||
@@ -163,7 +163,7 @@ async function simulate() {
       results.innerHTML = `
         <h2>Standings</h2>
         <ul>
-          ${data.standings.map(t => `<li>${t[0]}: ${t[1]}W</li>`).join('')}
+          ${data.standings.map(t => `<li>${t[0]}: ${formatRecord(t, league)}</li>`).join('')}
         </ul>
         <h2>Playoffs</h2>
         <ul>
