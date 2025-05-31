@@ -106,9 +106,11 @@ def simulate_route():
     league = data.get('league', 'IGL')
 
     if league == 'IGL':
-        result = run_simulation_igl()
+        league = data.get('league', 'IGL').upper()
+        result = run_simulation(league)
     else:
-        result = run_simulation_slog()
+        league = data.get('league', 'SLOG').upper()
+        result = run_simulation(league)
 
     return jsonify(result)
 
@@ -181,8 +183,13 @@ def get_player_overall(player_name):
         pass
     return None
 
+from collections import defaultdict
+import random
+
 def run_simulation(league):
-    if league.upper() == 'SLOG':
+    league = league.upper()
+    
+    if league == 'SLOG':
         canada_conf = ['Vancouver', 'Montreal', 'Quebec City', 'Toronto']
         usa_conf = ['Los Angeles', 'San Jose', 'New York', 'Indiana']
         teams = canada_conf + usa_conf
@@ -206,7 +213,7 @@ def run_simulation(league):
     standings = [(team, wins.get(team, 0)) for team in teams]
     standings.sort(key=lambda x: x[1], reverse=True)
 
-    if league.upper() == 'SLOG':
+    if league == 'SLOG':
         playoff_teams = [team for team, _ in standings[:5]]
         seed1, seed2, seed3, seed4, seed5 = playoff_teams
 
@@ -225,7 +232,6 @@ def run_simulation(league):
             'Eliminator 1': (seed4, seed5),
             'Eliminator 2': (q1_loser, elim1_winner)
         }
-
     else:
         team1, team2 = standings[0][0], standings[1][0]
         final_teams = (team1, team2)
