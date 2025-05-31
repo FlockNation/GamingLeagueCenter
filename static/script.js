@@ -204,4 +204,24 @@ async function simulate() {
   }
 }
 
-function loadPlayers() {}
+async function loadPlayers() {
+  const select = document.getElementById('player-select');
+  select.innerHTML = '<option value="">Loading players...</option>';
+
+  try {
+    const res = await fetch('/players');
+    const data = await res.json();
+    const players = data.players;
+
+    select.innerHTML = '<option value="">Select a player</option>';
+    players.forEach(player => {
+      const option = document.createElement('option');
+      option.value = player;
+      option.textContent = player;
+      select.appendChild(option);
+    });
+  } catch (error) {
+    console.error('Error loading players:', error);
+    select.innerHTML = '<option value="">Error loading players</option>';
+  }
+}
