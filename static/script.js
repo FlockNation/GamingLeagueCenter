@@ -148,6 +148,8 @@ async function simulate() {
     };
 
     if (league === 'SLOG') {
+      console.log("DEBUG SLOG DATA:", data)
+      
       if (
         typeof data.standings !== 'object' ||
         !Array.isArray(data.standings.Canada) ||
