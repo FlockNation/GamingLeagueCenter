@@ -153,7 +153,7 @@ async function simulate() {
       if (
         typeof data.standings !== 'object' ||
         !Array.isArray(data.standings) ||
-        typeof data.playoffs.semis !== 'object' ||
+        !Array.isArray(data.playoffs.semis) ||
         !Array.isArray(data.playoffs.final) ||
         data.playoffs.final.length !== 3 ||
         !data.playoffs.champion
