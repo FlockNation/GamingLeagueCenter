@@ -138,3 +138,11 @@ form {
     width: 100%;
   }
 }
+
+.main-footer {
+  text-align: center;
+  padding: 15px;
+  background-color: #f5f5f5;
+  color: #333;
+  margin-top: 40px;
+}
