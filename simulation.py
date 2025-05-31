@@ -2,6 +2,8 @@ import random
 from collections import defaultdict
 import json
 
+print("DEBUG: simulation.py started")
+
 def run_simulation(league):
     league = league.upper()
 
