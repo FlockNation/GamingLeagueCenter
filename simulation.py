@@ -46,7 +46,7 @@ def run_simulation(league):
         semis = {
             'Qualifier 1': (seed2, seed3),
             'Eliminator 1': (seed4, seed5),
-            'Qualifier 2': (q1_loser, elim1_winner)
+            'Eliminator 2': (q1_loser, elim1_winner)
         }
 
         lottery = [team for team, _ in overall_standings[5:]]
