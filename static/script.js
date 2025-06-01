@@ -171,7 +171,7 @@ async function simulate() {
         </ul>
         <p><strong>Final:</strong> ${data.playoffs.final.join(' vs ')}</p>
         <p><strong>Champion:</strong> ${data.playoffs.champion}</p>
-        <h2>Draft Lottery</h2>
+        <h2>Draft</h2>
         <ol>${data.lottery.map(team => `<li>${team}</li>`).join('')}</ol>
       `;
     } else {
@@ -195,7 +195,7 @@ async function simulate() {
         </ul>
         <p><strong>Final:</strong> ${data.playoffs.final.join(' vs ')}</p>
         <p><strong>Champion:</strong> ${data.playoffs.champion}</p>
-        <h2>Draft Lottery</h2>
+        <h2>Draft</h2>
         <ol>${data.lottery.map(team => `<li>${team}</li>`).join('')}</ol>
       `;
     }
