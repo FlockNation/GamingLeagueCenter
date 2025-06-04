@@ -22,10 +22,25 @@
     </div>
 
     <div style="margin-top: 20px;">
-      <a href="/">← Back to Main Page</a>
+      <button onclick="logout()">Logout</button>
     </div>
   </div>
 
   <script src="/static/place_bets.js"></script>
+  <script>
+    function logout() {
+      fetch('/logout', {
+        method: 'POST',
+        credentials: 'include'
+      })
+      .then(res => res.json())
+      .then(data => {
+        window.location.href = '/login';
+      })
+      .catch(err => {
+        alert('Logout failed.');
+      });
+    }
+  </script>
 </body>
 </html>
