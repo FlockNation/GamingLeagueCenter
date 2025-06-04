@@ -41,12 +41,12 @@ function showLoginForm() {
   form.innerHTML = `
     <h2>Login</h2>
     <input type="text" id="login-username" placeholder="Username" />
-    <button onclick="loginUser()">Login</button>
+    <button id="login-button" onclick="loginUser()">Login</button>
     <p id="login-message"></p>
     <hr />
     <h3>Register</h3>
     <input type="text" id="register-username" placeholder="New Username" />
-    <button onclick="registerUser()">Register</button>
+    <button id="register-button" onclick="registerUser()">Register</button>
     <p id="register-message"></p>
   `;
   container.appendChild(form);
@@ -55,15 +55,22 @@ function showLoginForm() {
 async function loginUser() {
   const username = document.getElementById('login-username').value.trim();
   const msg = document.getElementById('login-message');
+  const loginBtn = document.getElementById('login-button');
   if (!username) {
+    msg.style.color = 'red';
     msg.textContent = 'Please enter a username.';
     return;
   }
+
+  loginBtn.disabled = true;
+  msg.textContent = 'Logging in...';
+  msg.style.color = 'black';
 
   try {
     const res = await fetch('/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ username })
     });
 
@@ -77,25 +84,34 @@ async function loginUser() {
     } else {
       msg.style.color = 'red';
       msg.textContent = data.error || 'Login failed';
+      loginBtn.disabled = false;
     }
   } catch {
     msg.style.color = 'red';
     msg.textContent = 'Error during login.';
+    loginBtn.disabled = false;
   }
 }
 
 async function registerUser() {
   const username = document.getElementById('register-username').value.trim();
   const msg = document.getElementById('register-message');
+  const registerBtn = document.getElementById('register-button');
   if (!username) {
+    msg.style.color = 'red';
     msg.textContent = 'Please enter a username.';
     return;
   }
+
+  registerBtn.disabled = true;
+  msg.textContent = 'Registering...';
+  msg.style.color = 'black';
 
   try {
     const res = await fetch('/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ username })
     });
 
@@ -110,6 +126,8 @@ async function registerUser() {
   } catch {
     msg.style.color = 'red';
     msg.textContent = 'Error during registration.';
+  } finally {
+    registerBtn.disabled = false;
   }
 }
 
@@ -122,6 +140,7 @@ async function calculateOverall() {
     const res = await fetch('/calculate_overall', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ score_impact, risk_factor, activity })
     });
 
@@ -145,6 +164,7 @@ async function simulate() {
     const res = await fetch('/simulate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ league })
     });
 
@@ -186,7 +206,7 @@ async function loadPlayers() {
   select.innerHTML = '<option value="">Loading players...</option>';
 
   try {
-    const res = await fetch('/players');
+    const res = await fetch('/players', { credentials: 'include' });
     const data = await res.json();
     select.innerHTML = '<option value="">Select a player</option>';
     data.players.forEach(player => {
@@ -215,6 +235,7 @@ async function lookupPlayerOverall() {
     const res = await fetch('/player_overall', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ player })
     });
 
@@ -229,3 +250,20 @@ async function lookupPlayerOverall() {
     result.textContent = 'Error fetching data.';
   }
 }
+
+async function checkLoginStatus() {
+  try {
+    const res = await fetch('/check_login', { method: 'GET', credentials: 'include' });
+    if (!res.ok) throw new Error('Not logged in');
+    const data = await res.json();
+    if (data.logged_in) {
+      window.location.href = '/place_bets/';
+    } else {
+      showLoginForm();
+    }
+  } catch {
+    showLoginForm();
+  }
+}
+
+window.onload = checkLoginStatus;
