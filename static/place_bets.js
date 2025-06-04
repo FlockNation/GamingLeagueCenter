@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const res = await fetch('/place_bet', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ game, team, amount })
       });
@@ -41,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function checkLoginStatus() {
     try {
-      const res = await fetch('/get_balance');
+      const res = await fetch('/get_balance', { credentials: 'include' });
       const data = await res.json();
       if (res.ok && data.balance !== undefined) {
         bettingSection.style.display = 'block';
@@ -56,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function updateBalance() {
     try {
-      const res = await fetch('/get_balance');
+      const res = await fetch('/get_balance', { credentials: 'include' });
       const data = await res.json();
       if (res.ok) {
         balanceP.textContent = `Balance: ${data.balance} Coins`;
