@@ -28,7 +28,7 @@ def load_user(user_id):
     return None
 
 def init_db():
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect('/data/users.db')
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS users (
         username TEXT PRIMARY KEY,
@@ -46,7 +46,7 @@ def get_user(username):
     return user
 
 def get_user_balance(username):
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect('/data/users.db')
     c = conn.cursor()
     c.execute('SELECT balance FROM users WHERE username = ?', (username,))
     result = c.fetchone()
@@ -54,7 +54,7 @@ def get_user_balance(username):
     return result[0] if result else 0
 
 def update_user_balance(username, new_balance):
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect('/data/users.db')
     c = conn.cursor()
     c.execute('UPDATE users SET balance = ? WHERE username = ?', (new_balance, username))
     conn.commit()
@@ -82,7 +82,7 @@ def register():
         return jsonify({'error': 'Username required'}), 400
     if get_user(username):
         return jsonify({'error': 'Username already exists'}), 400
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect('/data/users.db')
     c = conn.cursor()
     c.execute('INSERT INTO users (username) VALUES (?)', (username,))
     conn.commit()
