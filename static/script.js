@@ -32,24 +32,10 @@ function showLookupPlayer() {
 function showLoginForm() {
   hideAllSections();
   clearResults();
-  const container = document.querySelector('.container');
-  const existingForm = document.getElementById('login-form');
-  if (existingForm) existingForm.remove();
-
-  const form = document.createElement('div');
-  form.id = 'login-form';
-  form.innerHTML = `
-    <h2>Login</h2>
-    <input type="text" id="login-username" placeholder="Username" />
-    <button id="login-button" onclick="loginUser()">Login</button>
-    <p id="login-message"></p>
-    <hr />
-    <h3>Register</h3>
-    <input type="text" id="register-username" placeholder="New Username" />
-    <button id="register-button" onclick="registerUser()">Register</button>
-    <p id="register-message"></p>
-  `;
-  container.appendChild(form);
+  // Removed the login form creation here
+  // You can redirect or load your separate login.html page if needed
+  // For example:
+  window.location.href = '/login.html';
 }
 
 async function loginUser() {
