@@ -2,8 +2,6 @@ function hideAllSections() {
   document.getElementById('calculate-overall-section').style.display = 'none';
   document.getElementById('simulate-leagues-section').style.display = 'none';
   document.getElementById('lookup-player-section').style.display = 'none';
-  const loginForm = document.getElementById('login-form');
-  if (loginForm) loginForm.remove();
   clearResults();
 }
 
@@ -27,11 +25,6 @@ function showLookupPlayer() {
   hideAllSections();
   document.getElementById('lookup-player-section').style.display = 'block';
   loadPlayers();
-}
-
-function showLoginForm() {
-  hideAllSections();
-  clearResults();
 }
 
 async function loginUser() {
@@ -240,11 +233,8 @@ async function checkLoginStatus() {
     const data = await res.json();
     if (data.logged_in) {
       window.location.href = '/place_bets/';
-    } else {
-      showLoginForm();
     }
   } catch {
-    showLoginForm();
   }
 }
 
