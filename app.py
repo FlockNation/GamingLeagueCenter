@@ -2,7 +2,6 @@ from flask import Flask, request, jsonify, render_template, session
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
-from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import timedelta
 import csv
 import random
@@ -35,14 +34,7 @@ def unauthorized():
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
     username = db.Column(db.String, primary_key=True)
-    password_hash = db.Column(db.String(128), nullable=False)
     balance = db.Column(db.Integer, default=1000)
-
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
-
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
 
     def get_id(self):
         return self.username
@@ -84,15 +76,13 @@ def place_bets_page():
 def register():
     data = request.json
     username = data.get('username')
-    password = data.get('password')
-    if not username or not password:
-        return jsonify({'error': 'Username and password required'}), 400
+    if not username:
+        return jsonify({'error': 'Username required'}), 400
     if get_user(username):
         return jsonify({'error': 'Username already exists'}), 400
-    if len(username) < 3 or len(password) < 6:
-        return jsonify({'error': 'Username must be at least 3 characters and password at least 6 characters'}), 400
+    if len(username) < 3:
+        return jsonify({'error': 'Username must be at least 3 characters'}), 400
     new_user = User(username=username)
-    new_user.set_password(password)
     db.session.add(new_user)
     db.session.commit()
     return jsonify({'message': 'User registered successfully', 'balance': 1000})
@@ -101,12 +91,11 @@ def register():
 def login():
     data = request.json
     username = data.get('username')
-    password = data.get('password')
-    if not username or not password:
-        return jsonify({'error': 'Username and password required'}), 400
+    if not username:
+        return jsonify({'error': 'Username required'}), 400
     user = get_user(username)
-    if not user or not user.check_password(password):
-        return jsonify({'error': 'Invalid username or password'}), 401
+    if not user:
+        return jsonify({'error': 'Invalid username'}), 401
     login_user(user)
     session.permanent = True
     return jsonify({'message': 'Logged in', 'balance': user.balance})
