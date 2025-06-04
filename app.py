@@ -99,6 +99,8 @@ def check_login():
     if current_user.is_authenticated:
         username = current_user.get_id()
         return jsonify({'logged_in': True, 'username': username, 'balance': get_user_balance(username)})
+    else:
+         return jsonify({'logged_in': False})
 
 
 @app.route('/place_bet', methods=['POST'])
