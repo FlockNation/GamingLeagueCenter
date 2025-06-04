@@ -1,66 +1,51 @@
 from flask import Flask, request, jsonify, render_template, session
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
-import sqlite3
 import csv
 import random
 from collections import defaultdict
+import os
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key'
 CORS(app, supports_credentials=True)
 
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or 'sqlite:///local.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-class User(UserMixin):
-    def __init__(self, username):
-        self.id = username
+class User(db.Model, UserMixin):
+    __tablename__ = 'users'
+    username = db.Column(db.String, primary_key=True)
+    balance = db.Column(db.Integer, default=1000)
 
-    @property
-    def balance(self):
-        return get_user_balance(self.id)
+    def get_id(self):
+        return self.username
 
 @login_manager.user_loader
 def load_user(user_id):
-    if get_user(user_id):
-        return User(user_id)
-    return None
-
-def init_db():
-    conn = sqlite3.connect('users.db')
-    c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS users (
-        username TEXT PRIMARY KEY,
-        balance INTEGER DEFAULT 1000
-    )''')
-    conn.commit()
-    conn.close()
+    return User.query.get(user_id)
 
 def get_user(username):
-    conn = sqlite3.connect('users.db')
-    c = conn.cursor()
-    c.execute('SELECT username FROM users WHERE username = ?', (username,))
-    user = c.fetchone()
-    conn.close()
-    return user
+    return User.query.filter_by(username=username).first()
 
 def get_user_balance(username):
-    conn = sqlite3.connect('users.db')
-    c = conn.cursor()
-    c.execute('SELECT balance FROM users WHERE username = ?', (username,))
-    result = c.fetchone()
-    conn.close()
-    return result[0] if result else 0
+    user = get_user(username)
+    return user.balance if user else 0
 
 def update_user_balance(username, new_balance):
-    conn = sqlite3.connect('users.db')
-    c = conn.cursor()
-    c.execute('UPDATE users SET balance = ? WHERE username = ?', (new_balance, username))
-    conn.commit()
-    conn.close()
+    user = get_user(username)
+    if user:
+        user.balance = new_balance
+        db.session.commit()
 
-init_db()
+with app.app_context():
+    db.create_all()
 
 @app.route('/')
 def index():
@@ -82,11 +67,9 @@ def register():
         return jsonify({'error': 'Username required'}), 400
     if get_user(username):
         return jsonify({'error': 'Username already exists'}), 400
-    conn = sqlite3.connect('users.db')
-    c = conn.cursor()
-    c.execute('INSERT INTO users (username) VALUES (?)', (username,))
-    conn.commit()
-    conn.close()
+    new_user = User(username=username)
+    db.session.add(new_user)
+    db.session.commit()
     return jsonify({'message': 'User registered successfully', 'balance': 1000})
 
 @app.route('/login', methods=['POST'])
@@ -94,12 +77,12 @@ def login():
     username = request.json.get('username')
     if not username:
         return jsonify({'error': 'Username required'}), 400
-    if not get_user(username):
+    user = get_user(username)
+    if not user:
         return jsonify({'error': 'User not found'}), 404
-    user = User(username)
     login_user(user)
     session.permanent = True
-    return jsonify({'message': 'Logged in', 'balance': get_user_balance(username)})
+    return jsonify({'message': 'Logged in', 'balance': user.balance})
 
 @app.route('/logout', methods=['POST'])
 @login_required
@@ -122,7 +105,6 @@ def place_bet():
             return jsonify({'error': 'Bet amount must be positive'}), 400
     except ValueError:
         return jsonify({'error': 'Invalid bet amount'}), 400
-
     username = current_user.id
     balance = get_user_balance(username)
     if balance < amount:
