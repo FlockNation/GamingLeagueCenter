@@ -35,6 +35,7 @@ function showLoginForm() {
   const container = document.querySelector('.container');
   const existingForm = document.getElementById('login-form');
   if (existingForm) existingForm.remove();
+
   const form = document.createElement('div');
   form.id = 'login-form';
   form.innerHTML = `
@@ -58,12 +59,14 @@ async function loginUser() {
     msg.textContent = 'Please enter a username.';
     return;
   }
+
   try {
     const res = await fetch('/login', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username })
     });
+
     const data = await res.json();
     if (res.ok) {
       msg.style.color = 'green';
@@ -88,12 +91,14 @@ async function registerUser() {
     msg.textContent = 'Please enter a username.';
     return;
   }
+
   try {
     const res = await fetch('/register', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username })
     });
+
     const data = await res.json();
     if (res.ok) {
       msg.style.color = 'green';
@@ -112,33 +117,39 @@ async function calculateOverall() {
   const score_impact = parseInt(document.getElementById('score_impact').value);
   const risk_factor = parseInt(document.getElementById('risk_factor').value);
   const activity = parseInt(document.getElementById('activity').value);
-  const res = await fetch('/calculate_overall', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ score_impact, risk_factor, activity })
-  });
-  const data = await res.json();
-  if (res.ok) {
-    document.getElementById('overall-result').textContent = `Overall Rating: ${data.overall}`;
-  } else {
-    document.getElementById('overall-result').textContent = data.error || 'Error calculating overall';
+
+  try {
+    const res = await fetch('/calculate_overall', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ score_impact, risk_factor, activity })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      document.getElementById('overall-result').textContent = `Overall Rating: ${data.overall}`;
+    } else {
+      document.getElementById('overall-result').textContent = data.error || 'Error calculating overall';
+    }
+  } catch {
+    document.getElementById('overall-result').textContent = 'Error calculating overall.';
   }
 }
 
 async function simulate() {
-  const results = document.getElementById('results');
   const league = document.getElementById('league').value;
+  const results = document.getElementById('results');
   results.innerHTML = '<p>Loading simulation...</p>';
+
   try {
-    const response = await fetch('/simulate', {
+    const res = await fetch('/simulate', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ league }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ league })
     });
-    if (!response.ok) {
-      throw new Error(`Server error: ${response.statusText}`);
-    }
-    const data = await response.json();
+
+    if (!res.ok) throw new Error(`Server error: ${res.statusText}`);
+    const data = await res.json();
 
     const formatRecord = (teamRecord, league) => {
       const wins = teamRecord[1];
@@ -147,60 +158,26 @@ async function simulate() {
       return `${wins}-${losses}`;
     };
 
-    if (league === 'SLOG') {
-      console.log("DEBUG SLOG DATA:", data);
+    const playoffsHTML = league === 'SLOG'
+      ? data.playoffs.semis.map(m => `<li>${m.round}: ${m.teams[0]} vs ${m.teams[1]}</li>`).join('')
+      : Object.entries(data.playoffs.semis).map(([round, teams]) => `<li>${round}: ${teams[0]} vs ${teams[1]}</li>`).join('');
 
-      if (
-        typeof data.standings !== 'object' ||
-        !Array.isArray(data.standings) ||
-        !Array.isArray(data.playoffs.semis) ||
-        !Array.isArray(data.playoffs.final) ||
-        data.playoffs.final.length !== 3 ||
-        !data.playoffs.champion
-      ) {
-        throw new Error('Incomplete simulation data received for SLOG.');
-      }
-      results.innerHTML = `
-        <h2>Standings</h2>
-        <ul>
-          ${data.standings.map(t => `<li>${t[0]}: ${formatRecord(t, league)}</li>`).join('')}
-        </ul>
-        <h2>Playoffs</h2>
-        <ul>
-          ${data.playoffs.semis.map(match => `<li>${match.round}: ${match.teams[0]} vs ${match.teams[1]}</li>`).join('')}
-        </ul>
-        <p><strong>Final:</strong> ${data.playoffs.final.join(' vs ')}</p>
-        <p><strong>Champion:</strong> ${data.playoffs.champion}</p>
-        <h2>Draft</h2>
-        <ol>${data.lottery.map(team => `<li>${team}</li>`).join('')}</ol>
-      `;
-    } else {
-      if (
-        !Array.isArray(data.standings) ||
-        typeof data.playoffs.semis !== 'object' ||
-        !Array.isArray(data.playoffs.final) ||
-        data.playoffs.final.length !== 2 ||
-        !data.playoffs.champion
-      ) {
-        throw new Error('Incomplete simulation data received.');
-      }
-      results.innerHTML = `
-        <h2>Standings</h2>
-        <ul>
-          ${data.standings.map(t => `<li>${t[0]}: ${formatRecord(t, league)}</li>`).join('')}
-        </ul>
-        <h2>Playoffs</h2>
-        <ul>
-          ${Object.entries(data.playoffs.semis).map(([round, teams]) => `<li>${round}: ${teams[0]} vs ${teams[1]}</li>`).join('')}
-        </ul>
-        <p><strong>Final:</strong> ${data.playoffs.final.join(' vs ')}</p>
-        <p><strong>Champion:</strong> ${data.playoffs.champion}</p>
-        <h2>Draft</h2>
-        <ol>${data.lottery.map(team => `<li>${team}</li>`).join('')}</ol>
-      `;
-    }
-  } catch (error) {
-    results.innerHTML = `<p style="color: red;">${error.message}</p>`;
+    const finalMatch = data.playoffs.final.join(' vs ');
+    const standingsHTML = data.standings.map(t => `<li>${t[0]}: ${formatRecord(t, league)}</li>`).join('');
+    const draftHTML = data.lottery.map(team => `<li>${team}</li>`).join('');
+
+    results.innerHTML = `
+      <h2>Standings</h2>
+      <ul>${standingsHTML}</ul>
+      <h2>Playoffs</h2>
+      <ul>${playoffsHTML}</ul>
+      <p><strong>Final:</strong> ${finalMatch}</p>
+      <p><strong>Champion:</strong> ${data.playoffs.champion}</p>
+      <h2>Draft</h2>
+      <ol>${draftHTML}</ol>
+    `;
+  } catch (err) {
+    results.innerHTML = `<p style="color: red;">${err.message}</p>`;
   }
 }
 
@@ -211,17 +188,15 @@ async function loadPlayers() {
   try {
     const res = await fetch('/players');
     const data = await res.json();
-    const players = data.players;
-
     select.innerHTML = '<option value="">Select a player</option>';
-    players.forEach(player => {
+    data.players.forEach(player => {
       const option = document.createElement('option');
       option.value = player;
       option.textContent = player;
       select.appendChild(option);
     });
-  } catch (error) {
-    console.error('Error loading players:', error);
+  } catch (err) {
+    console.error('Error loading players:', err);
     select.innerHTML = '<option value="">Error loading players</option>';
   }
 }
@@ -230,29 +205,27 @@ async function lookupPlayerOverall() {
   const select = document.getElementById('player-select');
   const player = select.value;
 
+  const result = document.getElementById('player-overall-result');
   if (!player) {
-    document.getElementById('player-overall-result').textContent = 'Please select a player.';
+    result.textContent = 'Please select a player.';
     return;
   }
 
   try {
     const res = await fetch('/player_overall', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ player })
     });
 
     const data = await res.json();
-
     if (data.error) {
-      document.getElementById('player-overall-result').textContent = 'Error: ' + data.error;
+      result.textContent = 'Error: ' + data.error;
     } else {
-      document.getElementById('player-overall-result').textContent = `${player}'s overall: ${data.overall}`;
+      result.textContent = `${player}'s overall: ${data.overall}`;
     }
   } catch (err) {
     console.error('Failed to fetch player overall:', err);
-    document.getElementById('player-overall-result').textContent = 'Error fetching data.';
+    result.textContent = 'Error fetching data.';
   }
 }
