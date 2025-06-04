@@ -2,13 +2,17 @@ from flask import Flask, request, jsonify, render_template, session
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
+from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import timedelta
 import csv
 import random
 from collections import defaultdict
 import os
+import logging
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 CORS(app, supports_credentials=True)
 
 uri = os.getenv("DATABASE_URL", "sqlite:///local.db")
@@ -22,11 +26,23 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
+login_manager.login_view = 'login_page'
+
+@login_manager.unauthorized_handler
+def unauthorized():
+    return jsonify({'error': 'Unauthorized'}), 401
 
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
     username = db.Column(db.String, primary_key=True)
+    password_hash = db.Column(db.String(128), nullable=False)
     balance = db.Column(db.Integer, default=1000)
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
 
     def get_id(self):
         return self.username
@@ -66,24 +82,31 @@ def place_bets_page():
 
 @app.route('/register', methods=['POST'])
 def register():
-    username = request.json.get('username')
-    if not username:
-        return jsonify({'error': 'Username required'}), 400
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+    if not username or not password:
+        return jsonify({'error': 'Username and password required'}), 400
     if get_user(username):
         return jsonify({'error': 'Username already exists'}), 400
+    if len(username) < 3 or len(password) < 6:
+        return jsonify({'error': 'Username must be at least 3 characters and password at least 6 characters'}), 400
     new_user = User(username=username)
+    new_user.set_password(password)
     db.session.add(new_user)
     db.session.commit()
     return jsonify({'message': 'User registered successfully', 'balance': 1000})
 
 @app.route('/login', methods=['POST'])
 def login():
-    username = request.json.get('username')
-    if not username:
-        return jsonify({'error': 'Username required'}), 400
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+    if not username or not password:
+        return jsonify({'error': 'Username and password required'}), 400
     user = get_user(username)
-    if not user:
-        return jsonify({'error': 'User not found'}), 404
+    if not user or not user.check_password(password):
+        return jsonify({'error': 'Invalid username or password'}), 401
     login_user(user)
     session.permanent = True
     return jsonify({'message': 'Logged in', 'balance': user.balance})
@@ -97,11 +120,9 @@ def logout():
 @app.route('/check_login', methods=['GET'])
 def check_login():
     if current_user.is_authenticated:
-        username = current_user.get_id()
-        return jsonify({'logged_in': True, 'username': username, 'balance': get_user_balance(username)})
+        return jsonify({'logged_in': True, 'username': current_user.get_id(), 'balance': get_user_balance(current_user.get_id())})
     else:
-         return jsonify({'logged_in': False})
-
+        return jsonify({'logged_in': False})
 
 @app.route('/place_bet', methods=['POST'])
 @login_required
@@ -114,11 +135,11 @@ def place_bet():
         return jsonify({'error': 'Missing bet details'}), 400
     try:
         amount = int(amount)
-        if amount <= 0:
-            return jsonify({'error': 'Bet amount must be positive'}), 400
+        if amount <= 0 or amount > 1000000:
+            return jsonify({'error': 'Bet amount must be positive and reasonable'}), 400
     except ValueError:
         return jsonify({'error': 'Invalid bet amount'}), 400
-    username = current_user.id
+    username = current_user.get_id()
     balance = get_user_balance(username)
     if balance < amount:
         return jsonify({'error': 'Not enough coins'}), 400
@@ -128,9 +149,10 @@ def place_bet():
 @app.route('/get_balance')
 @login_required
 def get_balance():
-    return jsonify({'balance': get_user_balance(current_user.id)})
+    return jsonify({'balance': get_user_balance(current_user.get_id())})
 
 @app.route('/simulate', methods=['POST'])
+@login_required
 def simulate_route():
     data = request.json
     league = data.get('league', 'SLOG').upper()
@@ -138,6 +160,7 @@ def simulate_route():
     return jsonify(result)
 
 @app.route('/calculate_overall', methods=['POST'])
+@login_required
 def calculate_overall_route():
     data = request.json
     score_impact = data.get('score_impact')
@@ -151,6 +174,7 @@ def calculate_overall_route():
     return jsonify({'overall': overall})
 
 @app.route('/players', methods=['GET'])
+@login_required
 def players_route():
     players = []
     try:
@@ -162,11 +186,12 @@ def players_route():
                 if player and player not in seen:
                     seen.add(player)
                     players.append(player)
-    except Exception:
-        pass
+    except Exception as e:
+        logging.error(f"Error reading players CSV: {e}")
     return jsonify({'players': players})
 
 @app.route('/player_overall', methods=['POST'])
+@login_required
 def player_overall_route():
     data = request.json
     player_name = data.get('player')
@@ -186,23 +211,23 @@ def get_overall_from_csv(score_impact, risk_factor, activity, filename='gaming_l
                     int(row['RiskFactor']) == risk_factor and
                     int(row['Activity']) == activity):
                     return int(row['Overall'])
-    except:
-        pass
+    except Exception as e:
+        logging.error(f"Error reading overall CSV: {e}")
     return None
 
 def get_player_overall(player_name):
     try:
         with open('tableConvert.com_grbjkn.csv', newline='', encoding='utf-8') as player_file, \
              open('tableConvert.com_03cn1x.csv', newline='', encoding='utf-8') as overall_file:
-            player_reader = csv.DictReader(player_file)
-            overall_reader = csv.DictReader(overall_file)
-            players = [row['player'] for row in player_reader]
-            overalls = [int(row['player_overall']) for row in overall_reader]
-            if player_name in players:
-                index = players.index(player_name)
-                return overalls[index]
-    except:
-        pass
+            player_reader = list(csv.DictReader(player_file))
+            overall_reader = list(csv.DictReader(overall_file))
+            player_dict = {row['player']: idx for idx, row in enumerate(player_reader)}
+            if player_name in player_dict:
+                index = player_dict[player_name]
+                if index < len(overall_reader):
+                    return int(overall_reader[index]['player_overall'])
+    except Exception as e:
+        logging.error(f"Error reading player overall CSVs: {e}")
     return None
 
 def run_simulation(league):
@@ -266,4 +291,5 @@ def run_simulation(league):
     }
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.ERROR)
     app.run(debug=True)
