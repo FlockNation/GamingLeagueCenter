@@ -32,10 +32,6 @@ function showLookupPlayer() {
 function showLoginForm() {
   hideAllSections();
   clearResults();
-  // Removed the login form creation here
-  // You can redirect or load your separate login.html page if needed
-  // For example:
-  window.location.href = '/login.html';
 }
 
 async function loginUser() {
