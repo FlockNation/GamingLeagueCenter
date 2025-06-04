@@ -72,7 +72,7 @@ async function loginUser() {
       msg.style.color = 'green';
       msg.textContent = `Logged in! Balance: ${data.balance}`;
       setTimeout(() => {
-        window.location.href = '/place_bets';
+        window.location.href = '/place_bets/';
       }, 1000);
     } else {
       msg.style.color = 'red';
