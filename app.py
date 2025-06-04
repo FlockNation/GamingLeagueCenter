@@ -97,9 +97,9 @@ def logout():
 @app.route('/check_login', methods=['GET'])
 def check_login():
     if current_user.is_authenticated:
-        return jsonify({'logged_in': True, 'username': current_user.id, 'balance': get_user_balance(current_user.id)})
-    else:
-        return jsonify({'logged_in': False})
+        username = current_user.get_id()
+        return jsonify({'logged_in': True, 'username': username, 'balance': get_user_balance(username)})
+
 
 @app.route('/place_bet', methods=['POST'])
 @login_required
