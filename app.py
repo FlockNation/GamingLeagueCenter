@@ -12,7 +12,7 @@ import logging
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY')
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=36500)
 app.config['SESSION_TYPE'] = 'sqlalchemy'
 CORS(app, supports_credentials=True)
 
