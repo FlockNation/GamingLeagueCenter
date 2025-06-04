@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, render_template, session
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
+from flask_session import Session
 from datetime import timedelta
 import csv
 import random
@@ -10,8 +11,9 @@ import os
 import logging
 
 app = Flask(__name__)
-app.secret_key = 'your-secret-key'
+app.secret_key = os.environ.get('SECRET_KEY')
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
+app.config['SESSION_TYPE'] = 'sqlalchemy'
 CORS(app, supports_credentials=True)
 
 uri = os.getenv("DATABASE_URL", "sqlite:///local.db")
@@ -23,6 +25,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
+app.config['SESSION_SQLALCHEMY'] = db
+Session(app)
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login_page'
