@@ -62,7 +62,7 @@ async function loginUser() {
     const res = await fetch('/login', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      credentials: 'include', // crucial for session
+      credentials: 'include',
       body: JSON.stringify({ username })
     });
     const data = await res.json();
@@ -260,14 +260,13 @@ async function lookupPlayerOverall() {
   }
 }
 
-// --- New functions for betting and balance because of the new back-end ---
 
 async function placeBet(game, team, amount) {
   try {
     const res = await fetch('/place_bet', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      credentials: 'include', // session cookie for login
+      credentials: 'include',
       body: JSON.stringify({ game, team, amount })
     });
     const data = await res.json();
