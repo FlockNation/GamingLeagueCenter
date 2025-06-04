@@ -38,7 +38,7 @@ def init_db():
     conn.close()
 
 def get_user(username):
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect('/data/users.db')
     c = conn.cursor()
     c.execute('SELECT username FROM users WHERE username = ?', (username,))
     user = c.fetchone()
