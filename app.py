@@ -14,6 +14,8 @@ app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY')
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=36500)
 app.config['SESSION_TYPE'] = 'sqlalchemy'
+app.config['SESSION_COOKIE_SECURE'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 CORS(app, supports_credentials=True)
 
 uri = os.getenv("DATABASE_URL", "sqlite:///local.db")
@@ -28,13 +30,17 @@ db = SQLAlchemy(app)
 app.config['SESSION_SQLALCHEMY'] = db
 Session(app)
 
+@login_manager.unauthorized_handler
+def unauthorized():
+    return jsonify({'error': 'Unauthorized'}), 401
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login_page'
 
-@login_manager.unauthorized_handler
-def unauthorized():
-    return jsonify({'error': 'Unauthorized'}), 401
+@app.before_request
+def make_session_permanent():
+    session.permanent = True
 
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
@@ -195,6 +201,14 @@ def player_overall_route():
     if overall is None:
         return jsonify({'error': 'Player not found'}), 404
     return jsonify({'overall': overall})
+
+@app.route('/session-info')
+def session_info():
+    return {
+        "session_cookie_expiry": str(request.cookies.get('session')),
+        "session_permanent": session.permanent,
+        "session_keys": list(session.keys())
+    }
 
 def get_overall_from_csv(score_impact, risk_factor, activity, filename='gaming_league_overall.csv'):
     try:
