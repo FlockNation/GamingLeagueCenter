@@ -59,7 +59,7 @@ def index():
 def login_page():
     return render_template('login.html')
 
-@app.route('/place_bets')
+@app.route('/place_bets/')
 @login_required
 def place_bets_page():
     return render_template('place_bets.html')
