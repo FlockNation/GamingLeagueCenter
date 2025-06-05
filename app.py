@@ -30,10 +30,6 @@ db = SQLAlchemy(app)
 app.config['SESSION_SQLALCHEMY'] = db
 Session(app)
 
-@login_manager.unauthorized_handler
-def unauthorized():
-    return jsonify({'error': 'Unauthorized'}), 401
-
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login_page'
@@ -41,6 +37,10 @@ login_manager.login_view = 'login_page'
 @app.before_request
 def make_session_permanent():
     session.permanent = True
+
+@login_manager.unauthorized_handler
+def unauthorized():
+    return jsonify({'error': 'Unauthorized'}), 401
 
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
