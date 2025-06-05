@@ -12,9 +12,10 @@
     
     <button onclick="showCalculateOverall()">Calculate Overall</button>
     <button onclick="showSimulateLeagues()">Simulate Leagues</button>
-    <a href="/login"><button>Place Bets</button></a>
-    
+    <button onclick="goToPlaceBets()">Place Bets</button>
     <button onclick="showLookupPlayer()">Lookup Player Overall</button>
+    <button onclick="logoutUser()" id="logout-btn" style="display:none; float:right;">Logout</button>
+    <span id="user-info" style="float:right; margin-right:10px;"></span>
 
     <div id="calculate-overall-section" style="display:none; margin-top:20px;">
       <h2>Calculate Overall</h2>
@@ -45,10 +46,44 @@
     </div>
   </div>
   <footer class="main-footer">
-  <p>&copy; 2025 Gaming League Center. All rights reserved. Version 1.1</p>
+    <p>&copy; 2025 Gaming League Center. All rights reserved. Version 1.1</p>
   </footer>
   
+  <script>
+    function goToPlaceBets() {
+      window.location.href = "/place_bets/";
+    }
+    async function logoutUser() {
+      try {
+        const res = await fetch('/logout', { method: 'POST', credentials: 'include' });
+        if (res.ok) {
+          document.getElementById('user-info').textContent = '';
+          document.getElementById('logout-btn').style.display = 'none';
+          alert('Logged out!');
+        }
+      } catch {
+        alert('Logout failed.');
+      }
+    }
+    async function updateUserInfo() {
+      try {
+        const res = await fetch('/check_login', { credentials: 'include' });
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        if (data.logged_in) {
+          document.getElementById('user-info').textContent = `User: ${data.username} | Balance: ${data.balance}`;
+          document.getElementById('logout-btn').style.display = '';
+        } else {
+          document.getElementById('user-info').textContent = '';
+          document.getElementById('logout-btn').style.display = 'none';
+        }
+      } catch {
+        document.getElementById('user-info').textContent = '';
+        document.getElementById('logout-btn').style.display = 'none';
+      }
+    }
+    window.onload = updateUserInfo;
+  </script>
   <script src="/static/script.js"></script>
-  
 </body>
 </html>
