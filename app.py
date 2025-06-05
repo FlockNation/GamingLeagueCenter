@@ -152,7 +152,6 @@ def get_balance():
     return jsonify({'balance': get_user_balance(current_user.get_id())})
 
 @app.route('/simulate', methods=['POST'])
-@login_required
 def simulate_route():
     data = request.json
     league = data.get('league', 'SLOG').upper()
@@ -160,7 +159,6 @@ def simulate_route():
     return jsonify(result)
 
 @app.route('/calculate_overall', methods=['POST'])
-@login_required
 def calculate_overall_route():
     data = request.json
     score_impact = data.get('score_impact')
@@ -174,7 +172,6 @@ def calculate_overall_route():
     return jsonify({'overall': overall})
 
 @app.route('/players', methods=['GET'])
-@login_required
 def players_route():
     players = []
     try:
@@ -191,7 +188,6 @@ def players_route():
     return jsonify({'players': players})
 
 @app.route('/player_overall', methods=['POST'])
-@login_required
 def player_overall_route():
     data = request.json
     player_name = data.get('player')
