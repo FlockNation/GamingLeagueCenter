@@ -1,4 +1,112 @@
-async function showCalculateOverall() {
+function hideAllSections() {
+  document.getElementById('calculate-overall-section').style.display = 'none';
+  document.getElementById('simulate-leagues-section').style.display = 'none';
+  document.getElementById('lookup-player-section').style.display = 'none';
+  clearResults();
+}
+
+function clearResults() {
+  document.getElementById('overall-result').textContent = '';
+  document.getElementById('results').innerHTML = '';
+  document.getElementById('player-overall-result').textContent = '';
+}
+
+function showCalculateOverall() {
+  hideAllSections();
+  document.getElementById('calculate-overall-section').style.display = 'block';
+}
+
+function showSimulateLeagues() {
+  hideAllSections();
+  document.getElementById('simulate-leagues-section').style.display = 'block';
+}
+
+function showLookupPlayer() {
+  hideAllSections();
+  document.getElementById('lookup-player-section').style.display = 'block';
+  loadPlayers();
+}
+
+async function loginUser() {
+  const username = document.getElementById('login-username').value.trim();
+  const msg = document.getElementById('login-message');
+  const loginBtn = document.getElementById('login-button');
+  if (!username) {
+    msg.style.color = 'red';
+    msg.textContent = 'Please enter a username.';
+    return;
+  }
+
+  loginBtn.disabled = true;
+  msg.textContent = 'Logging in...';
+  msg.style.color = 'black';
+
+  try {
+    const res = await fetch('/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ username })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      msg.style.color = 'green';
+      msg.textContent = `Logged in! Balance: ${data.balance}`;
+      setTimeout(() => {
+        window.location.href = '/place_bets/';
+      }, 1000);
+    } else {
+      msg.style.color = 'red';
+      msg.textContent = data.error || 'Login failed';
+      loginBtn.disabled = false;
+    }
+  } catch {
+    msg.style.color = 'red';
+    msg.textContent = 'Error during login.';
+    loginBtn.disabled = false;
+  }
+}
+
+async function registerUser() {
+  const username = document.getElementById('register-username').value.trim();
+  const msg = document.getElementById('register-message');
+  const registerBtn = document.getElementById('register-button');
+  if (!username) {
+    msg.style.color = 'red';
+    msg.textContent = 'Please enter a username.';
+    return;
+  }
+
+  registerBtn.disabled = true;
+  msg.textContent = 'Registering...';
+  msg.style.color = 'black';
+
+  try {
+    const res = await fetch('/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ username })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      msg.style.color = 'green';
+      msg.textContent = 'User registered! You can now log in.';
+    } else {
+      msg.style.color = 'red';
+      msg.textContent = data.error || 'Registration failed';
+    }
+  } catch {
+    msg.style.color = 'red';
+    msg.textContent = 'Error during registration.';
+  } finally {
+    registerBtn.disabled = false;
+  }
+}
+
+async function calculateOverall() {
   const score_impact = parseInt(document.getElementById('score_impact').value);
   const risk_factor = parseInt(document.getElementById('risk_factor').value);
   const activity = parseInt(document.getElementById('activity').value);
@@ -11,11 +119,6 @@ async function showCalculateOverall() {
       body: JSON.stringify({ score_impact, risk_factor, activity })
     });
 
-    if (res.status === 401) {
-      document.getElementById('overall-result').textContent = 'You must be logged in!';
-      return;
-    }
-
     const data = await res.json();
     if (res.ok) {
       document.getElementById('overall-result').textContent = `Overall Rating: ${data.overall}`;
@@ -27,7 +130,7 @@ async function showCalculateOverall() {
   }
 }
 
-async function showSimulateLeagues() {
+async function simulate() {
   const league = document.getElementById('league').value;
   const results = document.getElementById('results');
   results.innerHTML = '<p>Loading simulation...</p>';
@@ -39,11 +142,6 @@ async function showSimulateLeagues() {
       credentials: 'include',
       body: JSON.stringify({ league })
     });
-
-    if (res.status === 401) {
-      results.innerHTML = '<p style="color:red;">You must be logged in!</p>';
-      return;
-    }
 
     if (!res.ok) throw new Error(`Server error: ${res.statusText}`);
     const data = await res.json();
@@ -84,10 +182,6 @@ async function loadPlayers() {
 
   try {
     const res = await fetch('/players', { credentials: 'include' });
-    if (res.status === 401) {
-      select.innerHTML = '<option value="">You must be logged in!</option>';
-      return;
-    }
     const data = await res.json();
     select.innerHTML = '<option value="">Select a player</option>';
     data.players.forEach(player => {
@@ -102,7 +196,7 @@ async function loadPlayers() {
   }
 }
 
-async function showLookupPlayer() {
+async function lookupPlayerOverall() {
   const select = document.getElementById('player-select');
   const player = select.value;
 
@@ -120,11 +214,6 @@ async function showLookupPlayer() {
       body: JSON.stringify({ player })
     });
 
-    if (res.status === 401) {
-      result.textContent = 'You must be logged in!';
-      return;
-    }
-
     const data = await res.json();
     if (data.error) {
       result.textContent = 'Error: ' + data.error;
@@ -136,3 +225,17 @@ async function showLookupPlayer() {
     result.textContent = 'Error fetching data.';
   }
 }
+
+async function checkLoginStatus() {
+  try {
+    const res = await fetch('/check_login', { method: 'GET', credentials: 'include' });
+    if (!res.ok) throw new Error('Not logged in');
+    const data = await res.json();
+    if (data.logged_in) {
+      window.location.href = '/place_bets/';
+    }
+  } catch {
+  }
+}
+
+window.onload = checkLoginStatus;
