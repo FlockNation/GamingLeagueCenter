@@ -1,4 +1,4 @@
-async function calculateOverall() {
+async function showCalculateOverall() {
   const score_impact = parseInt(document.getElementById('score_impact').value);
   const risk_factor = parseInt(document.getElementById('risk_factor').value);
   const activity = parseInt(document.getElementById('activity').value);
@@ -27,7 +27,7 @@ async function calculateOverall() {
   }
 }
 
-async function simulate() {
+async function showSimulateLeagues() {
   const league = document.getElementById('league').value;
   const results = document.getElementById('results');
   results.innerHTML = '<p>Loading simulation...</p>';
@@ -102,7 +102,7 @@ async function loadPlayers() {
   }
 }
 
-async function lookupPlayerOverall() {
+async function showLookupPlayer() {
   const select = document.getElementById('player-select');
   const player = select.value;
 
